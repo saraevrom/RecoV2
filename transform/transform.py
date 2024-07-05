@@ -1,4 +1,4 @@
-from typing import Optional, Self
+from typing import Optional, Any
 
 import numpy as np
 
@@ -7,7 +7,7 @@ from .matrices import Matrix
 
 
 class Transform(object):
-    def __init__(self,position:Vector3,rotation:Quaternion, parent: Optional[Self] = None):
+    def __init__(self,position:Vector3,rotation:Quaternion, parent: Optional[Any] = None):
         self.position = position
         self.rotation = rotation
         self.parent = parent

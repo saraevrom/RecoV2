@@ -1,7 +1,7 @@
 import os.path
 
 import sqlite3
-from typing import Tuple, Self,List
+from typing import Tuple, List
 from transform import Vector3
 
 import numpy as np
@@ -109,9 +109,8 @@ class Star(object):
         else:
             return None
 
-
     @classmethod
-    def from_db_entry(cls, entry: Tuple) -> Self:
+    def from_db_entry(cls, entry: Tuple):
         return cls(*entry)
 
     @staticmethod

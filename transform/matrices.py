@@ -1,4 +1,4 @@
-from typing import List, Any, Self
+from typing import List, Any
 
 
 def estimate_shape(data:List[List[Any]]):
@@ -41,7 +41,7 @@ class Matrix(object):
 
 
     @classmethod
-    def blank(cls,rows,columns, fill_value=None)->Self:
+    def blank(cls,rows,columns, fill_value=None):
         matdata = []
         for i in range(rows):
             matdata.append([fill_value]*columns)
@@ -64,7 +64,7 @@ class Matrix(object):
     def columns(self):
         return self.shape[1]
 
-    def __matmul__(self, other:Self) -> Self:
+    def __matmul__(self, other):
         if self.columns != other.rows:
             raise ValueError(f"Cannot multiply matrix with shape {self.shape} by {other.shape}")
         res = type(self).blank(self.rows,other.columns)

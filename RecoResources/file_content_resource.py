@@ -1,4 +1,4 @@
-from typing import Optional, Type, Self
+from typing import Optional, Type, Any
 import sys
 
 from PyQt6.QtWidgets import QLabel, QPushButton, QHBoxLayout, QFileDialog
@@ -56,14 +56,14 @@ class FileLoadedResourceInput(ResourceInputWidget):
 
 class FileContentWrapper(object):
     @classmethod
-    def from_str(cls,str_value)->Self:
+    def from_str(cls,str_value):
         raise NotImplementedError
 
     def serialize(self):
         raise NotImplementedError
 
     @classmethod
-    def deserialize(cls, v)->Self:
+    def deserialize(cls, v):
         raise NotImplementedError
 
     def unwrap(self):
@@ -139,7 +139,7 @@ class FileLoadedResource(Resource,ResourceInput):
         return asked
 
     @classmethod
-    def try_load(cls)->Optional[Self]:
+    def try_load(cls)->Optional[Any]:
         asked = cls.ask_filename()
         print("Loading",asked)
         if asked:

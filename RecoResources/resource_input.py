@@ -1,4 +1,4 @@
-from typing import Type, Dict, Union, Optional, Self
+from typing import Type, Dict, Union, Optional
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFrame, QSizePolicy, QLabel
 from RecoResources.resource import Resource, ResourceStorage
 
@@ -45,7 +45,7 @@ class ResourceRequest(object):
                 elif isinstance(v,dict):
                     self.add_request(k, **v)
 
-    def is_compatible_with(self, base: Self):
+    def is_compatible_with(self, base):
         base_keys = set(base.requests.keys())
         self_keys = set(self.requests.keys())
         return base_keys.issubset(self_keys)

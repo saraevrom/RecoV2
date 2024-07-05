@@ -1,5 +1,5 @@
 import warnings
-from typing import Self, Type
+from typing import Type
 from PyQt6.QtWidgets import QWidget, QFrame, QVBoxLayout
 
 
@@ -67,7 +67,7 @@ class ResourceStorage(object):
     def __init__(self):
         self.resources = dict()
 
-    def update_with(self, other:Self):
+    def update_with(self, other):
         self.resources.update(other.resources)
 
     def clear(self):
@@ -109,7 +109,7 @@ class ResourceStorage(object):
             del self.resources[key]
 
     @classmethod
-    def deserialize(cls,data:dict)->Self:
+    def deserialize(cls,data:dict):
         workon = ResourceStorage()
         resources = {k:Resource.unpack(data[k]) for k in data.keys()}
         workon.resources = resources
