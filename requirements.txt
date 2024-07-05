@@ -5,5 +5,4 @@ numba
 pyqt6
 pymc
 arviz
-lerspy
 pandas
