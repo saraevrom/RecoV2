@@ -283,7 +283,9 @@ class PADAMOReco(QMainWindow):
 
         if workspace.Workspace.has_dir():
             print("Workspace is set. Using workspace commons")
-            add_modules_dir(workspace.Workspace("reco_commons").get_tgt_dir())
+            ws = workspace.Workspace("reco_commons")
+            ws.ensure_directory()
+            add_modules_dir(ws.get_tgt_dir())
         else:
             print("No workspace is set. Using local commons")
             add_modules_dir(STOCK_COMMONS_SRCDIR)
