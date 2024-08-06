@@ -3,6 +3,8 @@ from itertools import compress
 
 import matplotlib.pyplot as plt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QPushButton
+from PyQt6.QtWidgets import QLineEdit
+from PyQt6.QtGui import QIntValidator
 from PyQt6 import QtCore
 from arviz.data.inference_data import  InferenceData
 import arviz as az
@@ -26,6 +28,13 @@ class TraceDisplay(QWidget):
         self.is_robust_check.checkStateChanged.connect(self.update_table)
         self.layout().addWidget(self.is_robust_check)
 
+        self.round_to_editor = QLineEdit()
+        self.round_to_editor.setText("3")
+        self.round_to_editor.setValidator(QIntValidator())
+        self.last_round_to = 3
+        self.layout().addWidget(self.round_to_editor)
+        self.round_to_editor.textEdited.connect(self.on_roundto_edit)
+
         btn = QPushButton("Plot trace")
         btn.clicked.connect(self.plot_trace)
         layout.addWidget(btn)
@@ -40,12 +49,22 @@ class TraceDisplay(QWidget):
 
         self.update_table()
 
+    def on_roundto_edit(self):
+        try:
+            new_round = int(self.round_to_editor.text())
+            if new_round>0:
+                # print(new_round)
+                self.last_round_to = new_round
+        except ValueError:
+            pass
+        self.update_table()
+
     def update_table(self):
         self.table_widget.clear()
         if self.is_robust_check.isChecked():
-            summary = az.summary(self.trace.posterior,stat_focus="median")
+            summary = az.summary(self.trace.posterior,stat_focus="median",round_to=self.last_round_to)
         else:
-            summary = az.summary(self.trace.posterior)
+            summary = az.summary(self.trace.posterior,round_to=self.last_round_to)
 
         #print(type(summary),summary)
 
