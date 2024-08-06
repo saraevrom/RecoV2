@@ -53,6 +53,7 @@ class ValuedResourceInput(ResourceInputWidget):
 
 class ValuedResource(Resource,ResourceInput, ResourceOutput):
     BaseType = None
+
     def __init__(self,value):
         self.value = value
 

@@ -9,6 +9,7 @@ import json, tempfile
 
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QWidget, QMainWindow, QPushButton, QMenu, QTabWidget, QHBoxLayout, QScrollArea, QVBoxLayout
+from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtCore import QSize, QRunnable, pyqtSlot, pyqtSignal, QObject, QThreadPool, QThread, QTimer
 from RecoResources import ResourceForm, ResourceDisplay, ResourceStorage, ResourceRequest, ScriptResource, Resource
 from reconstruction_model import ReconsructionModel
@@ -105,7 +106,14 @@ class RecoResourcesBundle(object):
     def get_actions(self):
         if self.runner is None:
             return dict()
-        return self.runner.get_actions()
+        actions = self.runner.get_actions()
+        for k in actions.keys():
+            label = actions[k][0]
+            action0 = actions[k][1]
+            def action(*args):
+                return action0(self.resource_storage)
+            actions[k] = label, action
+        return actions
 
     def save(self,path):
         resources = self.resource_storage.serialize()
@@ -312,7 +320,12 @@ class PADAMOReco(QMainWindow):
         self.action_list.clear()
         print("AVAILABLE ACTIONS",actions)
         for (label,action) in actions.values():
-            self.action_list.add_action(label, action)
+            def postprocessed_action(*args):
+                res = action(*args)
+                self.on_plotter_notify()
+                return res
+
+            self.action_list.add_action(label, postprocessed_action)
 
     def _pull_inputs(self):
         inputs = self.inputs_panel.get_resources()
@@ -421,6 +434,8 @@ class PADAMOReco(QMainWindow):
                     self.resources = res
                     self.update_outputs()
                     print("Reco OK")
+                    QMessageBox.information(self,"Reco status", "Reco finished")
+
 
 
     def update_outputs(self):

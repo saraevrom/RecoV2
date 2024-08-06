@@ -9,6 +9,7 @@ from RecoResources.alternate_resource import AlternatingResource,ResourceVariant
 from RecoResources.strict_functions import StrictFunction
 from RecoResources.combine_resources import CombineResource
 from RecoResources.option_resource import OptionResource
+from RecoResources.numpy_array_resource import NumpyArrayResource
 
 # Auxiliary resources
 from RecoResources.prior_resource import DistributionResource
@@ -19,6 +20,7 @@ from RecoResources.pymc_trace import TraceResource
 from RecoResources.detector_resource import DetectorResource
 from RecoResources.time_resource import TimeResource
 from RecoResources.star_list_resource import StarListResource
+
 
 
 if __name__=="__main__":

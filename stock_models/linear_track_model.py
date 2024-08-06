@@ -56,7 +56,7 @@ class ImageScene(Scene):
         longitude = resources.get("longitude")*np.pi/180
         hour_angle = resources.get("hour_angle")*np.pi/180
         declination = resources.get("declination")*np.pi/180
-        own_rotation = resources.get()
+        #own_rotation = resources.get()
 
 
     @classmethod
