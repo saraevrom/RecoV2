@@ -35,6 +35,17 @@ def add_extension(filename:str, extensions):
         filename = filename + candidate
     return filename
 
+def save_mod(filename:str,kwargs:dict):
+    if "filter" in kwargs.keys():
+        filters = kwargs["filter"]
+        extensions = re.findall(r"\*(\.\w+)", filters)
+        if extensions:
+            base_file_name, existing_extension = os.path.splitext(filename[0])
+            if existing_extension not in extensions:
+                print(f"Adding extension {extensions[0]} to file path {filename[0]}")
+                return filename[0]+extensions[0], filename[1]
+    return filename
+
 
 class Workspace(object):
     WORKSPACE_DIR = None
@@ -123,7 +134,7 @@ class Workspace(object):
 
     def get_save_file_name(self, *args, **kwargs):
         self._modify_kwargs(kwargs)
-        return QFileDialog.getSaveFileName(*args, **kwargs)
+        return save_mod(QFileDialog.getSaveFileName(*args, **kwargs), kwargs)
 
     def get_open_file_names(self, *args, **kwargs):
         self._modify_kwargs(kwargs)
