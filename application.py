@@ -233,9 +233,9 @@ class PADAMOReco(QMainWindow):
         file_menu = QMenu("&File",self)
         menu_bar.addMenu(file_menu)
 
-        add_action(self,file_menu,"Open python script as model",self.on_bootstrap_model, shortcut="Ctrl+Shift+O")
-        add_action(self,file_menu,"Open model",self.on_open_model, shortcut="Ctrl+O")
-        add_action(self,file_menu,"Save model",self.on_save_model, shortcut="Ctrl+S")
+        add_action(self,file_menu,"New project",self.on_bootstrap_model, shortcut="Ctrl+Shift+O")
+        add_action(self,file_menu,"Open project",self.on_open_model, shortcut="Ctrl+O")
+        add_action(self,file_menu,"Save project",self.on_save_model, shortcut="Ctrl+S")
         add_action(self,file_menu,"Update script",self.on_update_script)
         file_menu.addSeparator()
         add_action(self,file_menu,"Copy models to workspace",self.on_copy_models)
@@ -377,7 +377,7 @@ class PADAMOReco(QMainWindow):
                 print(traceback.format_exc())
 
     def on_open_model(self):
-        path = workspace.Workspace("reconstructions").get_open_file_name(caption="Open saved reconstruction",
+        path = workspace.Workspace("reco-projects").get_open_file_name(caption="Open saved reconstruction",
                                                                          filter="Model data (*.json)")[0]
         if path:
             self.resources = RecoResourcesBundle.open(path)
@@ -387,9 +387,8 @@ class PADAMOReco(QMainWindow):
             self._refresh_actions()
             self.on_plotter_notify()
 
-
     def on_save_model(self):
-        path = workspace.Workspace("reconstructions").get_save_file_name(caption="Open saved reconstruction",
+        path = workspace.Workspace("reco-projects").get_save_file_name(caption="Open saved reconstruction",
                                                                          filter="Model data (*.json)")[0]
         if path:
             self._pull_inputs()
