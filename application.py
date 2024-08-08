@@ -233,7 +233,7 @@ class PADAMOReco(QMainWindow):
         file_menu = QMenu("&File",self)
         menu_bar.addMenu(file_menu)
 
-        add_action(self,file_menu,"New project",self.on_bootstrap_model, shortcut="Ctrl+Shift+O")
+        add_action(self,file_menu,"New project",self.on_bootstrap_model, shortcut="Ctrl+N")
         add_action(self,file_menu,"Open project",self.on_open_model, shortcut="Ctrl+O")
         add_action(self,file_menu,"Save project",self.on_save_model, shortcut="Ctrl+S")
         add_action(self,file_menu,"Update script",self.on_update_script)
