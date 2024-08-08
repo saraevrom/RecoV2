@@ -40,11 +40,13 @@ class LinearLC(CombineResource,LCMaker):
     def make_lc(self, var_name,x):
         tau = self.data.get_resource("tau")
         d = tau.create_distribution(var_name+"_tau")
-        return 1+x/d
+        r = 1+x/d
+        return pt.switch(r>0.0,r,0.0)
 
     def get_lc(self,trace,var_name,x):
         tau = estimate(trace,var_name+"_tau")
-        return 1+x/tau
+        r = 1+x/tau
+        return np.where(r>0.0,r,0.0)
 
 
 class ExponentLC(CombineResource,LCMaker):

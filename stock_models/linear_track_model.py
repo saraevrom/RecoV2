@@ -115,12 +115,65 @@ class PlotsScene(Scene):
         return False
 
 
+class PlotsAltScene(Scene):
+    SceneName = "Plots (Alt)"
+
+    @classmethod
+    def draw_scene(cls, resources: ResourceStorage, fig: plt.Figure, axes: plt.Axes):
+        detector = resources.try_get("detector")
+        data = resources.try_get("reco_data")
+        if data is None or detector is None:
+            return
+        trace = resources.try_get("trace")
+        xs = np.arange(data.shape[0])
+        axes.autoscale()
+        axes.set_aspect("auto")
+        detector = resources.try_get("detector")
+        lc = np.zeros(data.shape[0])
+        if detector is None:
+            return
+        accum = []
+        metrics = []
+        w = resources.get("ma_filter")
+        active_win = resources.get("active_window")
+        for i in detector.iterate():
+            if detector.pixel_is_active(i):
+                s = (slice(None),) + i
+                #axes.plot(xs, data[s])
+                ydata = np.convolve(data[s], np.ones(w), 'same') / w
+                accum.append(ydata)
+                maxpos = np.argmax(ydata)
+                metrics.append(maxpos)
+                ydata[:max(0,maxpos-active_win)] = 0.0
+                ydata[min(len(ydata),maxpos+active_win):] = 0.0
+                lc += ydata
+        accum = np.array(accum)
+        order = np.argsort(metrics)
+        axes.stackplot(xs,accum[order])
+        #axes.plot(xs, lc, color="black")
+
+
+        if trace is not None and resources.has_resource("lc_conf"):
+            lc_params = resources.get("lc_conf")
+            lc_conf: MainLC = Resource.unpack(json.loads(lc_params))
+            x_lc = np.arange(resources.get("k_start"), resources.get("k_end"), 0.1)
+            y_lc = lc_conf.get_lc(trace, x_lc - resources.get("k0"))
+            axes.plot(x_lc, y_lc, "--", color="red")
+
+
+    @classmethod
+    def on_scene_mouse_event(cls, resources: ResourceStorage, event):
+        return False
+
+
 
 class LinearTrackModel(ReconsructionModel):
     RequestedResources = ResourceRequest({
         "k_start": dict(display_name="Start frame",default_value=0),
         "k_end": dict(display_name="End frame", default_value=-1),
         "k0": dict(display_name="Zero frame", default_value=0),
+        "ma_filter": dict(display_name="MA filter", default_value=1),
+        "active_window": dict(display_name="Active signal window", default_value=10),
         "pymc_sampling": dict(display_name="PyMC arguments", type_=PyMCSampleArgsResource),
         "detector": dict(display_name="Detector", type_=DetectorResource),
         "reco_data": dict(display_name="Reconstruction data", type_=HDF5Resource),
@@ -137,10 +190,11 @@ class LinearTrackModel(ReconsructionModel):
         "hour_angle": dict(display_name="Hour angle [°]", default_value=0.0),
         "declination": dict(display_name="Declination [°]", default_value=0.0),
         "own_rotation": dict(display_name="Own rotation [°]", default_value=0.0),
+
     })
 
     DisplayList = DisplayList.whitelist(["trace"])
-    Scenes = [ImageScene,PlotsScene]
+    Scenes = [ImageScene,PlotsScene, PlotsAltScene]
 
     @classmethod
     def calculate(cls, resources:ResourceStorage):
