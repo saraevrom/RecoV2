@@ -377,7 +377,7 @@ class PADAMOReco(QMainWindow):
                 print(traceback.format_exc())
 
     def on_open_model(self):
-        path = workspace.Workspace("reco-projects").get_open_file_name(caption="Open saved reconstruction",
+        path = workspace.Workspace("reco-projects").get_open_file_name(caption="Open saved reconstruction project",
                                                                          filter="Model data (*.json)")[0]
         if path:
             self.resources = RecoResourcesBundle.open(path)
@@ -388,7 +388,7 @@ class PADAMOReco(QMainWindow):
             self.on_plotter_notify()
 
     def on_save_model(self):
-        path = workspace.Workspace("reco-projects").get_save_file_name(caption="Open saved reconstruction",
+        path = workspace.Workspace("reco-projects").get_save_file_name(caption="Save reconstruction project",
                                                                          filter="Model data (*.json)")[0]
         if path:
             self._pull_inputs()

@@ -3,7 +3,7 @@ from RecoResources.file_content_resource import FileLoadedResource
 
 class ScriptResource(FileLoadedResource):
     Workspace = "reco_models"
-    DialogCaption = "Open script"
+    DialogCaption = "Choose script"
     Filter = "Python script (*.py)"
     BinaryMode = False
 
