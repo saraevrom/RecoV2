@@ -40,6 +40,7 @@ class OptionResourceInput(ResourceInputWidget):
     def ensure_subfield(self):
         if self.subfield is None:
             self.subfield = self.reftype.OptionType.create_widget()
+            self.subfield.set_changed_callback(self.trigger_callback)
             print(self.subfield)
             self._layout.addWidget(self.subfield)
 
