@@ -73,8 +73,10 @@ class AlternativeResourceInput(ResourceInputWidget):
 
     def ensure_variant(self,index:int):
         if self.subfields[index] is None:
-            self.subfields[index] = self.variants[index].create_widget()
-            self._layout.addWidget(self.subfields[index])
+            w = self.variants[index].create_widget()
+            self.subfields[index] = w
+            self._layout.addWidget(w)
+            w.set_changed_callback(self.trigger_callback)
             #self.subfields[index].setMinimumWidth(300)
 
     def select_variant(self,index:int):

@@ -24,6 +24,7 @@ class CombineResourceInput(ResourceInputWidget):
         frame.setLayout(frame_layout)
         self.input = ResourceForm(request)
         frame_layout.addWidget(self.input)
+        self.input.changed_callback = self.trigger_callback
 
     def set_title(self,title):
         self.label.setVisible(True)
