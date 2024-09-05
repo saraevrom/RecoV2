@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, minimize
 
 from reco_prelude import ResourceStorage, ReconsructionModel, ResourceRequest, LabelledAction
 from reco_prelude import HDF5Resource, DetectorResource, Scene
@@ -137,7 +137,9 @@ class BarycentricTrackModel(ReconsructionModel):
         "reco_data": dict(display_name="Reconstruction data", type_=HDF5Resource),
         "detector": dict(display_name="Detector", type_=DetectorResource),
         "signal_threshold": dict(display_name="Signal threshold", default_value=3.0),
-        "duration_threshold":dict(display_name="Duration threshold", default_value=0.0)
+        "duration_threshold":dict(display_name="Duration threshold", default_value=0.0),
+        "use_robust_linreg":dict(display_name="Robust linear regression", default_value=False),
+        "use_real_signal":dict(display_name="Use real signal for barycenter estimation", default_value=False),
     })
 
     Scenes = [DetectorScene, PlotsScene, PlotX,PlotY]
@@ -154,6 +156,7 @@ class BarycentricTrackModel(ReconsructionModel):
         print(reco_data)
         pixel_activations = dict()
         xdata = np.arange(reco_data.shape[0])
+        use_real = resources.get("use_real_signal")
         for i in detector.iterate():
             if detector.pixel_is_active(i):
                 s = (slice(None),) + i
@@ -183,7 +186,10 @@ class BarycentricTrackModel(ReconsructionModel):
                             data_index = (t,) + pixel.index
                             #print("DATA INDEX", data_index)
                             #s = float(reco_data[data_index])
-                            s = a*np.exp(-0.5*((t-x0)/sd)**2)
+                            if use_real:
+                                s = float(reco_data[data_index]) - (b0+b1*t+b2*t**2)
+                            else:
+                                s = a*np.exp(-0.5*((t-x0)/sd)**2)
                             x += s*np.mean(pixel.vertices[:, 0])
                             y += s*np.mean(pixel.vertices[:, 1])
                             xy_sum += s
@@ -198,6 +204,7 @@ class BarycentricTrackModel(ReconsructionModel):
         data = np.array(data)
         resources.set("trajectory",data)
         trajectory = data
+        use_robust = resources.get("use_robust_linreg")
 
         def linreg(x,k,b):
             return k*x+b
@@ -206,9 +213,15 @@ class BarycentricTrackModel(ReconsructionModel):
             if resources.has_resource(label):
                 resources.delete_resource(label)
 
+        if use_robust:
+            used_loss = "soft_l1"
+        else:
+            used_loss = "linear"
+
         def mod_fit(axis,k_label,b_label):
             try:
-                popt,pcov = curve_fit(linreg,trajectory[:,0],trajectory[:,axis],p0=np.array([1.0,0.0]))
+                popt,pcov = curve_fit(linreg,trajectory[:,0],trajectory[:,axis],p0=np.array([1.0,0.0]),
+                                      method="dogbox", loss=used_loss)
                 kx, bx = popt
                 #axes.plot(trajectory[:,0],linreg(trajectory[:,0],*popt), color="black")
                 resources.set(k_label,kx)

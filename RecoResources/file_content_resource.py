@@ -34,6 +34,7 @@ class FileLoadedResourceInput(ResourceInputWidget):
         content = self.refclass.try_load()
         if content is not None:
             self.set_resource(content)
+            self.trigger_callback()
 
     def _update_title(self):
         if self._bytes_display:
@@ -52,6 +53,7 @@ class FileLoadedResourceInput(ResourceInputWidget):
         self.content = resource
         self._bytes_display = self.format_info(resource)
         self._update_title()
+        #
 
 
 class FileContentWrapper(object):

@@ -4,6 +4,17 @@ from PyQt6.QtWidgets import QLabel, QLineEdit, QHBoxLayout, QCheckBox, QWidget, 
 from RecoResources import ResourceInput, Resource, ResourceInputWidget, ResourceOutput
 from RecoResources.strict_functions import Default
 
+class FocusOutTriggeringLineEdit(QLineEdit):
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.focus_out_callback = None
+
+    def focusOutEvent(self, a0):
+        super().focusOutEvent(a0)
+        if self.focus_out_callback:
+            self.focus_out_callback()
+
+
 
 class ValuedResourceInput(ResourceInputWidget):
     BaseType = None
@@ -17,7 +28,8 @@ class ValuedResourceInput(ResourceInputWidget):
 
         self._label = QLabel("")
         self._layout.addWidget(self._label,0)
-        self._entry =  QLineEdit(str(self.DefaultValue))
+        self._entry = FocusOutTriggeringLineEdit(str(self.DefaultValue))
+        self._entry.returnPressed.connect(self.on_submit)
         self._last_data = self.DefaultValue
         self._layout.addWidget(self._entry,1)
 
@@ -28,8 +40,14 @@ class ValuedResourceInput(ResourceInputWidget):
         #self.setSizePolicy(policy)
         #self._entry.setSizePolicy(policy)
         self._entry.textChanged.connect(self.on_changed)
+        self._entry.focus_out_callback = self.on_focus_loss
         self.on_changed()
 
+    def on_submit(self):
+        self._entry.clearFocus()
+
+    def on_focus_loss(self):
+        self.trigger_callback()
 
     def on_changed(self):
         try:
@@ -142,8 +160,11 @@ class BooleanResourceInput(ResourceInputWidget):
         self.setLayout(self._layout)
 
         self._check = QCheckBox("")
+        self._check.stateChanged.connect(self.on_value_changed)
         self._layout.addWidget(self._check)
 
+    def on_value_changed(self):
+        self.trigger_callback()
 
     def get_resource(self):
         return BooleanResource(self._check.isChecked())

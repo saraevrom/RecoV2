@@ -3,6 +3,12 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFrame, QSizePolicy, QLabel
 from RecoResources.resource import Resource, ResourceStorage
 
 class ResourceInputWidget(QWidget):
+    def set_changed_callback(self, callback):
+        setattr(self, "changed_callback", callback)
+
+    def trigger_callback(self):
+        if hasattr(self, "changed_callback"):
+            self.changed_callback()
 
     def get_resource(self):
         raise NotImplementedError
@@ -45,6 +51,7 @@ class ResourceRequest(object):
                 elif isinstance(v,dict):
                     self.add_request(k, **v)
 
+
     def is_compatible_with(self, base):
         base_keys = set(base.requests.keys())
         self_keys = set(self.requests.keys())
@@ -76,6 +83,7 @@ class ResourceForm(QWidget):
 
         self._layout.addWidget(QLabel(placeholder))
         self._placeholder = placeholder
+        self.changed_callback = None
 
     def populate_resources(self, requested_resources:Optional[ResourceRequest]):
         for i in reversed(range(self._layout.count())):
@@ -110,7 +118,7 @@ class ResourceForm(QWidget):
 
             if resource_request.default_value is not None:
                 widget.set_resource(resource_request.default_value)
-
+            widget.set_changed_callback(self.on_data_changed)
             self._layout.addWidget(frame)
             self.source_widgets[resource_key] = widget
 
@@ -128,3 +136,8 @@ class ResourceForm(QWidget):
         keys = widget_keys.intersection(storage_keys)
         for k in keys:
             self.source_widgets[k].set_resource(storage.get_resource(k))
+
+    def on_data_changed(self):
+        print("Change triggered")
+        if self.changed_callback:
+            self.changed_callback()

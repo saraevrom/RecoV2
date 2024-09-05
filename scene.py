@@ -82,6 +82,7 @@ class Drawer(QWidget):
         if self.replot_hook:
             self.replot_hook()
         if self.runner is not None and self.storage is not None:
+            #print("Replotting...")
             self.clear_plot()
             var = self.get_variant()
             try:

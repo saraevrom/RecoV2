@@ -275,6 +275,7 @@ class PADAMOReco(QMainWindow):
         self.setCentralWidget(widget)
         self.resources = RecoResourcesBundle.default()
         self.action_list = ButtonPanel()
+        self.action_list.action_hook = self.on_dry_run
         self.right_panel_data.addWidget(self.action_list)
 
         self.add_action("Pull data",self.on_dry_run)
@@ -283,6 +284,7 @@ class PADAMOReco(QMainWindow):
 
         #self.right_panel_data.addStretch()
         self.inputs_panel = ResourceForm(placeholder="No inputs")
+        self.inputs_panel.changed_callback = self.on_dry_run
         scroll0 = QScrollArea()
         scroll0.setWidget(self.inputs_panel)
         scroll0.setWidgetResizable(True)

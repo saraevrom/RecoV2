@@ -14,8 +14,9 @@ from padamo_rs_detector_parser import PadamoDetector
 
 
 class DetectorPixelSelector(QDialog):
-    def __init__(self,detector:PadamoDetector,*args,**kwargs):
+    def __init__(self,detector:PadamoDetector,triggerable,*args,**kwargs):
         super().__init__(*args,**kwargs)
+        self.triggerable = triggerable
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -74,6 +75,7 @@ class DetectorPixelSelector(QDialog):
         self.ax.set_aspect("equal")
         self.canvas.draw()
 
+
     def on_plot_click(self,event):
         if event.button==1:
             #xy = event.xydata
@@ -84,9 +86,11 @@ class DetectorPixelSelector(QDialog):
 
     def on_ok(self):
         self.detector.alive_pixels = self.alive_pixels
+        self.triggerable.trigger_callback()
         self.close()
 
     def on_cancel(self):
+        self.triggerable.trigger_callback()
         self.close()
 
 
@@ -124,7 +128,7 @@ class DetectorResourceInput(FileLoadedResourceInput):
 
     def on_select_active_pixels(self):
         if self.content is not None and self.content.unwrap() is not None:
-            dialog = DetectorPixelSelector(self.content.unwrap())
+            dialog = DetectorPixelSelector(self.content.unwrap(),self)
             dialog.exec()
 
 

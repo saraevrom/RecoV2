@@ -35,6 +35,7 @@ class OptionResourceInput(ResourceInputWidget):
         else:
             if self.subfield is not None:
                 self.subfield.setVisible(False)
+        self.trigger_callback()
 
     def ensure_subfield(self):
         if self.subfield is None:

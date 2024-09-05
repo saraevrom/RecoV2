@@ -7,6 +7,11 @@ class ButtonPanel(QWidget):
         super().__init__(*args,**kwargs)
         self._layout = QVBoxLayout()
         self.setLayout(self._layout)
+        self.action_hook = None
+
+    def on_action_ocurred(self):
+        if self.action_hook:
+            self.action_hook()
 
     def clear(self):
         for i in reversed(range(self._layout.count())):
@@ -15,4 +20,8 @@ class ButtonPanel(QWidget):
     def add_action(self,label, action):
         btn = QPushButton(label)
         self._layout.addWidget(btn)
-        btn.clicked.connect(action)
+
+        def action_wrapper():
+            self.on_action_ocurred()
+            action()
+        btn.clicked.connect(action_wrapper)

@@ -104,6 +104,7 @@ class HDF5ResourceInput(ResourceInputWidget):
         data = self.refclass.try_load_data()
         if data is not None:
             self._set_content(data)
+            self.trigger_callback()
 
     def _update_title(self):
         if self._shape_show:
