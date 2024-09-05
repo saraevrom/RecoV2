@@ -4,7 +4,7 @@ import io, base64
 import h5py
 import numpy as np
 from PyQt6.QtWidgets import QLabel, QPushButton, QHBoxLayout, QFileDialog, QDialog, QTreeWidget, QTreeWidgetItem, \
-    QVBoxLayout, QWidget
+    QVBoxLayout, QWidget, QMessageBox
 
 from RecoResources import Resource, ResourceInput, ResourceInputWidget, ResourceOutput
 from RecoResources.basic_resources import ValuedResource
@@ -63,7 +63,10 @@ class HDF5ViewDialog(QDialog):
         layout.addWidget(bottom)
 
     def on_ok(self):
-        self.close()
+        if self.result_field is None:
+            QMessageBox.warning(self,"Field selection", "Field is not selected. Double click needed field")
+        else:
+            self.close()
 
     def on_cancel(self):
         self.result_field = None
