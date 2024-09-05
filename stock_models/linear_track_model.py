@@ -172,8 +172,8 @@ class LinearTrackModel(ReconsructionModel):
         "k_start": dict(display_name="Start frame",default_value=0),
         "k_end": dict(display_name="End frame", default_value=-1),
         "k0": dict(display_name="Zero frame", default_value=0),
-        "ma_filter": dict(display_name="MA filter", default_value=1),
-        "active_window": dict(display_name="Active signal window", default_value=10),
+        "ma_filter": dict(display_name="MA filter", default_value=1, category="Display"),
+        "active_window": dict(display_name="Active signal window", default_value=10, category="Display"),
         "pymc_sampling": dict(display_name="PyMC arguments", type_=PyMCSampleArgsResource),
         "detector": dict(display_name="Detector", type_=DetectorResource),
         "reco_data": dict(display_name="Reconstruction data", type_=HDF5Resource),
@@ -185,11 +185,11 @@ class LinearTrackModel(ReconsructionModel):
         "sigma": dict(display_name="Sigma 0", default_value=template_exponent(1.0,False)),
         "lc":dict(display_name="Light curve", type_=MainLC),
 
-        "latitude": dict(display_name="Latitude [°]", default_value=0.0),
-        "longitude": dict(display_name="Longitude [°]", default_value=0.0),
-        "hour_angle": dict(display_name="Hour angle [°]", default_value=0.0),
-        "declination": dict(display_name="Declination [°]", default_value=0.0),
-        "own_rotation": dict(display_name="Own rotation [°]", default_value=0.0),
+        "latitude": dict(display_name="Latitude [°]", default_value=0.0, category="Display"),
+        "longitude": dict(display_name="Longitude [°]", default_value=0.0, category="Display"),
+        "hour_angle": dict(display_name="Hour angle [°]", default_value=0.0, category="Display"),
+        "declination": dict(display_name="Declination [°]", default_value=0.0, category="Display"),
+        "own_rotation": dict(display_name="Own rotation [°]", default_value=0.0, category="Display"),
 
     })
 

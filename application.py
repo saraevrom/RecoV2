@@ -283,12 +283,13 @@ class PADAMOReco(QMainWindow):
         self.add_action("Stop reconstruction",self.on_stop)
 
         #self.right_panel_data.addStretch()
-        self.inputs_panel = ResourceForm(placeholder="No inputs")
+        self.inputs_panel = ResourceForm(placeholder="No inputs", categorize=True)
         self.inputs_panel.changed_callback = self.on_dry_run
-        scroll0 = QScrollArea()
-        scroll0.setWidget(self.inputs_panel)
-        scroll0.setWidgetResizable(True)
-        self.right_panel_data.addWidget(scroll0)
+        # scroll0 = QScrollArea()
+        # scroll0.setWidget(self.inputs_panel)
+        # scroll0.setWidgetResizable(True)
+        # self.right_panel_data.addWidget(scroll0)
+        self.right_panel_data.addWidget(self.inputs_panel)
         self._sync_resources()
 
         if workspace.Workspace.has_dir():
