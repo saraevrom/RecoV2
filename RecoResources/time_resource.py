@@ -18,8 +18,13 @@ class TimeInput(ResourceInputWidget):
         self.label = QLabel("")
         layout.addWidget(self.label)
         self.dt_selector = QDateTimeEdit()
-        layout.addWidget(self.dt_selector)
         self.set_resource(ref.default())
+        self.dt_selector.dateTimeChanged.connect(self.on_datetime_change)
+        #self.dt_selector.change
+        layout.addWidget(self.dt_selector)
+
+    def on_datetime_change(self):
+        self.trigger_callback()
 
     def set_title(self,title):
         self.label.setText(title)
@@ -29,7 +34,7 @@ class TimeInput(ResourceInputWidget):
         #qd.setTimeZone(QTimeZone.utc(),QDateTime.TransitionResolution.Reject)
         dt = qd.toPyDateTime()
         dt = dt.replace(tzinfo=UTC)
-        print(str(dt),repr(dt),dt.tzinfo)
+        #print(str(dt),repr(dt),dt.tzinfo)
         return self.ref(dt)
 
     def set_resource(self,resource):

@@ -69,6 +69,7 @@ class AlternativeResourceInput(ResourceInputWidget):
     def _on_selector_update(self):
         i = self._selector.currentIndex()
         self.select_variant(i)
+        self.trigger_callback()
 
     def ensure_variant(self,index:int):
         if self.subfields[index] is None:

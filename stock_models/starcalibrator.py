@@ -110,7 +110,7 @@ class SkyScene(Scene):
                 col = pixel.to_column4()
                 col = (mvp @ col).to_vec4().to_vec3()
                 x, y, z = col.unpack()
-                print(x, y, z)
+                #print(x, y, z)
                 visible = (z > 0).all()
                 if visible:
                     axes.plot(x, y, color="black")
@@ -214,7 +214,7 @@ class StellarModel(ReconsructionModel):
         "detector": dict(display_name="Detector", type_=DetectorResource),
         "signal_data": dict(display_name="Signal data", type_=HDF5Resource),
         "time_data": dict(display_name="Time data", type_=HDF5Resource),
-        "time_probe": dict(display_name="Plot time", type_=TimeResource),
+        "time_probe": dict(display_name="Plot time", type_=TimeResource, category="Display"),
         "latitude": dict(display_name="Latitude [°]", default_value=0.0),
         "longitude": dict(display_name="Longitude [°]", default_value=0.0),
         "hour_angle": dict(display_name="Hour angle [°]", default_value=template_normal(0.0, 1.0)),
@@ -222,8 +222,8 @@ class StellarModel(ReconsructionModel):
         "own_rotation": dict(display_name="Own rotation [°]", default_value=template_normal(0.0, 1.0)),
         "f": dict(display_name="Focal distance [mm]", default_value=template_normal(150.0,1.0)),
         "stars": dict(display_name="Stars", type_=StarListResource),
-        "pdm_width": dict(display_name="PDM width [pixels]", default_value=8),
-        "pdm_height": dict(display_name="PDM height [pixels]", default_value=8),
+        # "pdm_width": dict(display_name="PDM width [pixels]", default_value=8),
+        # "pdm_height": dict(display_name="PDM height [pixels]", default_value=8),
     })
     Scenes = [SkyScene,DetectorScene]
 

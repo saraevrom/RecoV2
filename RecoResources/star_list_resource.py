@@ -29,6 +29,7 @@ class StarListInput(ResourceInputWidget):
         if starlist is not None:
             self.last_data = self.ref(starlist)
             self.entry.setStyleSheet(self._default_stylesheet)
+            self.trigger_callback()
         else:
             self.entry.setStyleSheet("color: red;")
 

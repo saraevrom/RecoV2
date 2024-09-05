@@ -106,6 +106,8 @@ class ResourceForm(QWidget):
         if requested_resources is not None:
             self.populate_resources(requested_resources)
 
+        self._enabled_callback = True
+
         #self._layout.addWidget(QLabel(placeholder))
         #self._placeholder = placeholder
 
@@ -182,19 +184,24 @@ class ResourceForm(QWidget):
         #self._layout.addStretch()
 
     def get_resources(self) -> ResourceStorage:
+        self._enabled_callback = False
         resources = ResourceStorage()
         for widget_key in self.source_widgets.keys():
             resources.set_resource(widget_key, self.source_widgets[widget_key].get_resource())
+        self._enabled_callback = True
         return resources
 
     def set_resources(self, storage:ResourceStorage):
+        self._enabled_callback = False
         widget_keys = set(self.source_widgets.keys())
         storage_keys = set(storage.resources.keys())
         keys = widget_keys.intersection(storage_keys)
         for k in keys:
             self.source_widgets[k].set_resource(storage.get_resource(k))
+        self._enabled_callback = True
+
 
     def on_data_changed(self):
         print("Change triggered")
-        if self.changed_callback:
+        if self.changed_callback and self._enabled_callback:
             self.changed_callback()

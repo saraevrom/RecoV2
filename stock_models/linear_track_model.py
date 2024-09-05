@@ -171,7 +171,7 @@ class LinearTrackModel(ReconsructionModel):
     RequestedResources = ResourceRequest({
         "k_start": dict(display_name="Start frame",default_value=0),
         "k_end": dict(display_name="End frame", default_value=-1),
-        "k0": dict(display_name="Zero frame", default_value=0),
+        "k0": dict(display_name="Zero frame", default_value=0.0),
         "ma_filter": dict(display_name="MA filter", default_value=1, category="Display"),
         "active_window": dict(display_name="Active signal window", default_value=10, category="Display"),
         "pymc_sampling": dict(display_name="PyMC arguments", type_=PyMCSampleArgsResource),

@@ -358,7 +358,7 @@ class PADAMOReco(QMainWindow):
         if not success:
             return
         self.resources = resources
-        print(self.resources.resource_storage.resources)
+        #print(self.resources.resource_storage.resources)
         self._sync_inputs()
         self._pull_inputs()
         self._sync_outputs()
