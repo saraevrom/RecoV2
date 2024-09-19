@@ -35,6 +35,10 @@ class ResourceInput(object):
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(*args,**kwargs)
 
+    @classmethod
+    def input_is_available(cls):
+        return True
+
 class SingleResourceRequest(object):
     def __init__(self, type_:Optional[Type[Union[Resource,ResourceInput]]]=None,
                  display_name:Optional[str]=None, default_value:Optional[Resource]=None,category="Main"):
@@ -44,6 +48,8 @@ class SingleResourceRequest(object):
         self.default_value = remap_basic_values(default_value)
         if type_ is None:
             type_ = type(self.default_value)
+        if not type_.input_is_available():
+            raise ValueError(f"Type {type_} input is not supported")
         self.type = type_
         self.display_name = display_name
         self.category = category
@@ -157,12 +163,14 @@ class ResourceForm(QWidget):
 
         for resource_key in self.requested_resources.keys():
             resource_request = self.requested_resources[resource_key]
+            widget = resource_request.type.create_widget()
+            if widget is None: # Skip if widget is None
+                continue
             frame = QFrame()
             frame.setFrameShape(QFrame.Shape.StyledPanel)
             frame_layout = QVBoxLayout()
             frame_layout.setContentsMargins(0,0,0,0)
             frame.setLayout(frame_layout)
-            widget = resource_request.type.create_widget()
             frame_layout.addWidget(widget,1)
 
             if resource_request.display_name is None:

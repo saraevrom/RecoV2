@@ -29,6 +29,10 @@ class ResourceOutput(object):
     def show_data(self, label:str)->QWidget:
         raise NotImplementedError
 
+    @classmethod
+    def output_is_available(cls):
+        return True
+
 
 class ResourceDisplay(QWidget):
     def __init__(self,placeholder="Outputs",*args,**kwargs):
@@ -50,7 +54,8 @@ class ResourceDisplay(QWidget):
 
         for resource_key in resource_storage.resources.keys():
             resource = resource_storage.resources[resource_key]
-            if isinstance(resource,ResourceOutput) and allow_list.is_allowed(resource_key):
+            if (isinstance(resource,ResourceOutput) and resource.output_is_available()
+                    and allow_list.is_allowed(resource_key)):
                 frame = QFrame()
                 frame_layout = QVBoxLayout()
                 frame.setLayout(frame_layout)

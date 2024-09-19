@@ -10,6 +10,7 @@ from RecoResources.strict_functions import StrictFunction
 from RecoResources.combine_resources import CombineResource
 from RecoResources.option_resource import OptionResource
 from RecoResources.numpy_array_resource import NumpyArrayResource
+from RecoResources.array_resource import ArrayResource
 
 # Auxiliary resources
 from RecoResources.prior_resource import DistributionResource
@@ -74,6 +75,9 @@ if __name__=="__main__":
             "spam":"Spam",
         }
 
+    class ArrayTestResource(ArrayResource):
+        InnerType = TestSubform
+
     class TestOption(OptionResource):
         OptionType = IntegerResource
 
@@ -89,6 +93,8 @@ if __name__=="__main__":
     requests.add_request("ok_option", TestOption, display_name="Test option")
     requests.add_request("distribution_test", DistributionResource, "A distribution")
     requests.add_request("hdf5", HDF5Resource, "A H5 data")
+    requests.add_request("item_list", ArrayTestResource, "Advanced Item list")
+    requests.add_request("item_list_2", ArrayTestResource, "Will it cross")
 
     simpler_requests = ResourceRequest()
 
@@ -141,8 +147,6 @@ if __name__=="__main__":
         def on_flip(self):
             self.requests = simpler_requests
             self.resource_form.populate_resources(self.requests)
-
-
 
     app = QApplication(sys.argv)
     main_window = TestApp()
