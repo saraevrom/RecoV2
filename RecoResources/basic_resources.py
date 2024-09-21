@@ -19,10 +19,10 @@ class FocusOutTriggeringLineEdit(QLineEdit):
 class ValuedResourceInput(ResourceInputWidget):
     BaseType = None
     DefaultValue = None
-    ConnectedResource = None
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self,connected_resource,*args,**kwargs):
         super().__init__(*args,**kwargs)
+        self._connected_resource = connected_resource
         self._layout = QHBoxLayout()
         self.setLayout(self._layout)
 
@@ -51,7 +51,10 @@ class ValuedResourceInput(ResourceInputWidget):
 
     def on_changed(self):
         try:
-            self._last_data = self.BaseType(self._entry.text())
+            new_data = self.BaseType(self._entry.text())
+            if not self._connected_resource.validate(new_data):
+                raise ValueError("Invalid data")
+            self._last_data = new_data
             self._entry.setStyleSheet(self._default_stylesheet)
         except ValueError:
             #print("ParseFail")
@@ -59,7 +62,7 @@ class ValuedResourceInput(ResourceInputWidget):
 
     def get_resource(self):
         #print(self._last_data)
-        return self.ConnectedResource(self._last_data)
+        return self._connected_resource(self._last_data)
 
     def set_resource(self,resource):
         self._entry.setText(str(resource.value))
@@ -108,11 +111,22 @@ class ValuedResource(Resource,ResourceInput, ResourceOutput):
             return cls(x)
         return None
 
+    @classmethod
+    def validate(cls,value):
+        """
+        Check if given value is valid. Useful for inheriting.
+        Don't forget to reset try_from method when doing this
+        """
+        return True
+
+    @classmethod
+    def create_widget(cls,*args,**kwargs):
+        return cls.InputWidget(cls, *args,**kwargs)
+
 
 class IntegerResourceInput(ValuedResourceInput):
     BaseType = int
     DefaultValue = 0
-    ConnectedResource = 0
 
 
 class IntegerResource(ValuedResource):
@@ -120,13 +134,10 @@ class IntegerResource(ValuedResource):
     BaseType = int
 
 
-IntegerResourceInput.ConnectedResource = IntegerResource
-
 
 class FloatResourceInput(ValuedResourceInput):
     BaseType = float
     DefaultValue = 0.0
-    ConnectedResource = 0
 
 
 class FloatResource(ValuedResource):
@@ -134,23 +145,14 @@ class FloatResource(ValuedResource):
     BaseType = float
 
 
-FloatResourceInput.ConnectedResource = FloatResource
-
-
 class StringResourceInput(ValuedResourceInput):
     BaseType = str
     DefaultValue = ""
-    ConnectedResource = 0
 
 
 class StringResource(ValuedResource):
     BaseType = str
     InputWidget = StringResourceInput
-
-
-StringResourceInput.ConnectedResource = StringResource
-
-
 
 class BooleanResourceInput(ResourceInputWidget):
 
