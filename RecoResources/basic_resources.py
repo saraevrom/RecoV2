@@ -156,7 +156,7 @@ class StringResource(ValuedResource):
 
 class BooleanResourceInput(ResourceInputWidget):
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self,bound_type,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self._layout = QHBoxLayout()
         self.setLayout(self._layout)
