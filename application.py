@@ -27,6 +27,24 @@ BASEDIR = os.path.dirname(os.path.realpath("__file__"))
 STOCK_SRCDIR = os.path.join(BASEDIR,"stock_models")
 STOCK_COMMONS_SRCDIR = os.path.join(BASEDIR,"stock_commons")
 
+class ActionWrapper(object):
+    def __init__(self, callable, resources):
+        self.callable = callable
+        self.resources = resources
+
+    def __call__(self, *args, **kwargs):
+        self.callable(self.resources,*args,**kwargs)
+
+class PostporcessedActionWrapper(object):
+    def __init__(self, action, event_callback):
+        self.action = action
+        self.event_callback = event_callback
+
+    def __call__(self,*args):
+        res = self.action(*args)
+        self.event_callback()
+        return res
+
 class RecoResourcesBundle(object):
     def __init__(self,resource_storage:ResourceStorage,request:Optional[ResourceRequest],runner:Optional[Type[ReconsructionModel]]=None, display_list:Optional[DisplayList]=None):
         self.resource_storage = resource_storage
@@ -67,12 +85,12 @@ class RecoResourcesBundle(object):
     def open_new_model():
         item = RecoResourcesBundle.default()
         success = item.update_script()
-        print("success:",success)
+        #print("success:",success)
         return item, success
 
     def update_script(self):
         script = ScriptResource.try_load()
-        print("SCRIPT",script)
+        #print("SCRIPT",script)
         if script is None:
             return False
         self._load_script(script)
@@ -110,8 +128,10 @@ class RecoResourcesBundle(object):
         for k in actions.keys():
             label = actions[k][0]
             action0 = actions[k][1]
-            def action(*args):
-                return action0(self.resource_storage)
+            # def action(*args):
+            #     return action0(self.resource_storage)
+            print("Got action",k, label,action0)
+            action = ActionWrapper(action0,self.resource_storage)
             actions[k] = label, action
         return actions
 
@@ -323,10 +343,11 @@ class PADAMOReco(QMainWindow):
         self.action_list.clear()
         print("AVAILABLE ACTIONS",actions)
         for (label,action) in actions.values():
-            def postprocessed_action(*args):
-                res = action(*args)
-                self.on_plotter_notify()
-                return res
+            # def postprocessed_action(*args):
+            #     res = action(*args)
+            #     self.on_plotter_notify()
+            #     return res
+            postprocessed_action = PostporcessedActionWrapper(action=action,event_callback=self.on_plotter_notify)
 
             self.action_list.add_action(label, postprocessed_action)
 

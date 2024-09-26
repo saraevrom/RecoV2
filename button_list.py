@@ -1,6 +1,13 @@
 from PyQt6.QtWidgets import QWidget, QPushButton, QVBoxLayout
 
+class ActionWrapper(object):
+    def __init__(self, a1, a2):
+        self.a1 = a1
+        self.a2 = a2
 
+    def __call__(self, *args, **kwargs):
+        self.a1()
+        self.a2()
 
 class ButtonPanel(QWidget):
     def __init__(self,*args,**kwargs):
@@ -20,8 +27,5 @@ class ButtonPanel(QWidget):
     def add_action(self,label, action):
         btn = QPushButton(label)
         self._layout.addWidget(btn)
-
-        def action_wrapper():
-            self.on_action_ocurred()
-            action()
+        action_wrapper = ActionWrapper(self.on_action_ocurred,action)
         btn.clicked.connect(action_wrapper)
