@@ -18,6 +18,9 @@ class LabelledCallable(object):
         self.func = func
         self.label = label
 
+    def __repr__(self):
+        return f"<Function ({self.func}) with name {self.label}>"
+
     def __call__(self,*args,**kwargs):
         self.func(*args,**kwargs)
 
@@ -52,7 +55,8 @@ class Scene(object):
     def on_scene_mouse_event(cls, resources: ResourceStorage, event):
         return True
 
-class ReconsructionModel(object):
+
+class ReconstructionModel(object):
     RequestedResources = ResourceRequest()
     AdditionalLabels = dict()
     Scenes: List[Type[Union[Scene, str]]] = []
@@ -100,3 +104,7 @@ class ReconsructionModel(object):
             if isinstance(class_field,LabelledCallable):
                 res[key] = (class_field.label, class_field)
         return res
+
+
+# To make old models work. Oops
+ReconsructionModel = ReconstructionModel
