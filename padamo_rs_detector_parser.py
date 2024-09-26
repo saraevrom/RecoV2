@@ -273,3 +273,9 @@ class PadamoDetector(object):
         :return:
         '''
         return [pixel.vertices_raycast(f) for pixel in self.pixels]
+
+    def find_pixel_id_in_position(self,point):
+        for pixel in self.pixels:
+            if pixel.position_is_inside(point):
+                return pixel.index
+        return None
