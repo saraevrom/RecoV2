@@ -94,7 +94,7 @@ class AlternativeResourceInput(ResourceInputWidget):
         return self.reference_alter(self.subfields[index].get_resource())
 
     def set_resource(self,resource):
-        print("ALTER SET", resource)
+        #print("ALTER SET", resource)
         index = self.variant_types.index(type(resource.value))
         self.select_variant(index)
         self.subfields[index].set_resource(resource.value)
