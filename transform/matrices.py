@@ -83,9 +83,10 @@ class Matrix(object):
     @classmethod
     def diagonal(cls, diagonal, other_value = 0.0):
         res = cls.blank(len(diagonal),len(diagonal),other_value)
-        cast = type(other_value)
+        # cast = type(other_value)
         for i in range(len(diagonal)):
-            res[i,i] = cast(diagonal[i])
+            # res[i,i] = cast(diagonal[i])
+            res[i,i] = diagonal[i]
         return res
 
     @classmethod
