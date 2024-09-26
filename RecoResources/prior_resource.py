@@ -5,6 +5,7 @@ from RecoResources import CombineResource, AlternatingResource, BlankResource, R
 from RecoResources import FloatResource, ResourceVariant, ResourceStorage
 # from scipy.special import erfinv
 
+
 class DistributionMaker(object):
     def create_distribution(self, name:str):
         raise NotImplementedError
@@ -14,6 +15,10 @@ class DistributionMaker(object):
 
     def get_estimation(self):
         return None
+
+    @staticmethod
+    def template(*args,**kwargs):
+        raise NotImplementedError
 
 
 class FlatMaker(BlankResource, DistributionMaker):
@@ -25,6 +30,9 @@ class FlatMaker(BlankResource, DistributionMaker):
     def get_dist(self):
         return pm.Flat.dist()
 
+    @staticmethod
+    def template():
+        return DistributionResource(FlatMaker())
 
 
 class HalfFlatMaker(BlankResource, DistributionMaker):
@@ -35,6 +43,10 @@ class HalfFlatMaker(BlankResource, DistributionMaker):
 
     def get_dist(self):
         return pm.HalfFlat.dist()
+
+    @staticmethod
+    def template():
+        return DistributionResource(HalfFlatMaker())
 
 
 class NormalMaker(CombineResource, DistributionMaker):
@@ -57,6 +69,13 @@ class NormalMaker(CombineResource, DistributionMaker):
     def get_estimation(self):
         return self.data.get("mu")
 
+    @staticmethod
+    def template(mu,sigma):
+        data = ResourceStorage()
+        data.set("sigma",sigma)
+        data.set("mu",mu)
+        return DistributionResource(NormalMaker(data))
+
 
 class LaplaceMaker(CombineResource, DistributionMaker):
     Fields = ResourceRequest({
@@ -77,6 +96,14 @@ class LaplaceMaker(CombineResource, DistributionMaker):
 
     def get_estimation(self):
         return self.data.get("mu")
+
+    @staticmethod
+    def template(mu,b):
+        data = ResourceStorage()
+        data.set("mu", mu)
+        data.set("b", b)
+        return DistributionResource(LaplaceMaker(data))
+
 
 
 class UniformMaker(CombineResource, DistributionMaker):
@@ -102,6 +129,13 @@ class UniformMaker(CombineResource, DistributionMaker):
     def get_estimation(self):
         return (self.data.get("lower")+self.data.get("upper"))/2
 
+    @staticmethod
+    def template(lower, upper):
+        data = ResourceStorage()
+        data.set("lower", lower)
+        data.set("upper", upper)
+        return DistributionResource(UniformMaker(data))
+
 
 class HalfNormalMaker(CombineResource, DistributionMaker):
     Fields = ResourceRequest({
@@ -112,7 +146,7 @@ class HalfNormalMaker(CombineResource, DistributionMaker):
     def create_distribution(self, name:str):
         if self.data.get("negate"):
             neg = pm.HalfNormal(name+"_neg_", sigma=self.data.get("sigma"))
-            return pm.Deterministic(name,neg)
+            return pm.Deterministic(name,-neg)
         else:
             return pm.HalfNormal(name,sigma=self.data.get("sigma"))
 
@@ -132,6 +166,13 @@ class HalfNormalMaker(CombineResource, DistributionMaker):
         else:
             return res
 
+    @staticmethod
+    def template(sigma,negate):
+        data = ResourceStorage()
+        data.set("sigma", sigma)
+        data.set("negate", negate)
+        return DistributionResource(HalfNormalMaker(data))
+
 
 class ExponentialMaker(CombineResource, DistributionMaker):
     Fields = ResourceRequest({
@@ -142,7 +183,7 @@ class ExponentialMaker(CombineResource, DistributionMaker):
     def create_distribution(self, name:str):
         if self.data.get("negate"):
             neg = pm.Exponential(name+"_neg_", lam=self.data.get("lam"))
-            return pm.Deterministic(name,neg)
+            return pm.Deterministic(name,-neg)
         else:
             return pm.Exponential(name,lam=self.data.get("lam"))
 
@@ -161,6 +202,13 @@ class ExponentialMaker(CombineResource, DistributionMaker):
         else:
             return res
 
+    @staticmethod
+    def template(lam, negate):
+        data = ResourceStorage()
+        data.set("lam", lam)
+        data.set("negate", negate)
+        return DistributionResource(ExponentialMaker(data))
+
 
 class ConstantMaker(CombineResource, DistributionMaker):
     Fields = ResourceRequest({
@@ -177,6 +225,12 @@ class ConstantMaker(CombineResource, DistributionMaker):
 
     def get_estimation(self):
         return self.data.get("value")
+
+    @staticmethod
+    def template(value):
+        data = ResourceStorage()
+        data.set("value", value)
+        return DistributionResource(ConstantMaker(data))
 
 
 class CauchyMaker(CombineResource, DistributionMaker):
@@ -200,6 +254,13 @@ class CauchyMaker(CombineResource, DistributionMaker):
     def get_estimation(self):
         return self.data.get("alpha")
 
+    @staticmethod
+    def template(alpha, beta):
+        data = ResourceStorage()
+        data.set("alpha", alpha)
+        data.set("beta", beta)
+        return DistributionResource(CauchyMaker(data))
+
 
 class DistributionResource(AlternatingResource):
     Variants = [
@@ -222,6 +283,7 @@ class DistributionResource(AlternatingResource):
 
     def get_estimation(self):
         return self.value.get_estimation()
+
 
 
 class LimitOption(OptionResource):
@@ -264,29 +326,17 @@ DistributionResource.Variants.append(ResourceVariant(TruncatedMaker, "Truncated"
 
 
 def template_uniform(a,b):
-    data = ResourceStorage()
-    data.set("lower",a)
-    data.set("upper",b)
-    return DistributionResource(UniformMaker(data))
+    return UniformMaker.template(a,b)
 
 
 def template_halfnormal(sigma,negate):
-    data = ResourceStorage()
-    data.set("sigma",sigma)
-    data.set("negate",negate)
-    return DistributionResource(HalfNormalMaker(data))
+    return HalfNormalMaker.template(sigma,negate)
 
 
 def template_normal(mu,sigma):
-    data = ResourceStorage()
-    data.set("sigma",sigma)
-    data.set("mu",mu)
-    return DistributionResource(NormalMaker(data))
+    return NormalMaker.template(mu,sigma)
 
 
 def template_exponent(lam,negate):
-    data = ResourceStorage()
-    data.set("lam",lam)
-    data.set("negate",negate)
-    return DistributionResource(ExponentialMaker(data))
+    return ExponentialMaker.template(lam,negate)
 
