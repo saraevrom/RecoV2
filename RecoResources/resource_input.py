@@ -15,7 +15,7 @@ class ResourceInputWidget(QWidget):
         setattr(self, "changed_callback", callback)
 
     def trigger_callback(self):
-        if hasattr(self, "changed_callback"):
+        if hasattr(self, "changed_callback") and self.changed_callback is not None:
             self.changed_callback()
 
     def get_resource(self):
