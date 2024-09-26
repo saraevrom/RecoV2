@@ -178,12 +178,14 @@ class LinearTrackModel(ReconsructionModel):
         "detector": dict(display_name="Detector", type_=DetectorResource),
         "reco_data": dict(display_name="Reconstruction data", type_=HDF5Resource),
         "reco_time": dict(display_name="Reconstruction time", type_=HDF5Resource),
-        "ref_position": dict(display_name="(X0,Y0) [mm]", type_=PositionPriorAlternate),
-        "u0": dict(display_name="U0 [mm/fr]", default_value=template_uniform(0.01,2.0)),
-        "phi0": dict(display_name="Phi0 [deg]", default_value=template_uniform(0.0,360.0)),
-        "sigma_psf": dict(display_name="Sigma PSF [mm]", default_value=template_exponent(0.5,False)),
-        "sigma": dict(display_name="Sigma 0", default_value=template_exponent(1.0,False)),
-        "lc":dict(display_name="Light curve", type_=MainLC),
+        "ref_position": dict(display_name="(X0,Y0) [mm]", type_=PositionPriorAlternate,category="Priors"),
+        "u0": dict(display_name="U0 [mm/fr]", default_value=template_uniform(0.01,2.0),category="Priors"),
+        "phi0": dict(display_name="Phi0 [deg]", default_value=template_uniform(0.0,360.0),category="Priors"),
+        "sigma_psf": dict(display_name="Sigma PSF [mm]", default_value=template_exponent(0.5,False),
+                          category="Priors"),
+        "sigma": dict(display_name="Sigma 0", default_value=template_exponent(1.0,False),category="Priors"),
+        "lc":dict(display_name="Light curve", type_=MainLC,category="Priors"),
+        "sigma_individual":dict(display_name="Individual sigma", default_value=False),
 
         "latitude": dict(display_name="Latitude [°]", default_value=0.0, category="Display"),
         "longitude": dict(display_name="Longitude [°]", default_value=0.0, category="Display"),
@@ -213,7 +215,11 @@ class LinearTrackModel(ReconsructionModel):
             u0 = resources.get_resource("u0").create_distribution("u0")
             phi0 = resources.get_resource("phi0").create_distribution("phi0")*np.pi/180.0
             sigma_psf = resources.get_resource("sigma_psf").create_distribution("sigma_psf")
-            sigma = resources.get_resource("sigma").create_distribution("sigma")
+            individual = resources.get("sigma_individual")
+            if individual:
+                sigma = []
+            else:
+                sigma = resources.get_resource("sigma").create_distribution("sigma")
             ts = np.arange(k_start,k_end)
             tensors = []
             observed = []
@@ -240,8 +246,12 @@ class LinearTrackModel(ReconsructionModel):
                     # v = pixel.integrate(func,backend=pm.math)
                     tensors.append(v)
                     observed.append(data[s])
+                    if individual:
+                        sigma.append(resources.get_resource("sigma").create_distribution(f"sigma #{i}"))
             tensors = pt.concatenate(tensors)
             observed = np.concatenate(observed)
+            if individual:
+                sigma = pt.concatenate(sigma)
             pm.Normal("likelyhood",mu=tensors,sigma=sigma,observed=observed)
             trace = resources.get_resource("pymc_sampling").sample()
             resources.set("trace",trace)
