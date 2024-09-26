@@ -85,7 +85,7 @@ class StringWrapper(FileContentWrapper):
 
     @classmethod
     def deserialize(cls, v):
-        print(v)
+        #print(v)
         return cls(v)
 
     def unwrap(self):
