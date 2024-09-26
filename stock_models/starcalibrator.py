@@ -416,13 +416,6 @@ class StellarModel(ReconsructionModel):
 
             trace = resources.get_resource("pymc_sampling").sample()
             resources.set("trace", trace)
-            #     if z>0:
-            #         e0 = amplitude*10**(-star.umag) #TODO calculate E0 from stellar data
-
-
-            # # Shapes are matching "eras" and "times" shape
-            # x, y, z = transform_starvec(chosen_stars, vp)
-            # visible = z > 0
 
     @LabelledAction("Select pixels")
     @staticmethod
