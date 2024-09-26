@@ -119,6 +119,7 @@ class ArrayResourceInput(ResourceInputWidget):
     def on_add_item(self):
         self.add_item()
         self.name_items()
+        self.trigger_callback()
 
     def add_item(self):
         index_to_insert = len(self.items) + 1
@@ -135,15 +136,19 @@ class ArrayResourceInput(ResourceInputWidget):
 
     def delete_item(self, item):
         if item in self.items:
+            item.setParent(None)
             self._layout.removeWidget(item)
-            item.parent = None
+            item.set_changed_callback(None)
+
             self.items.remove(item)
             self.name_items()
+            self.trigger_callback()
 
     def clear_items(self):
         for item in self.items:
             self._layout.removeWidget(item)
-            item.parent = None
+            item.deleteLater()
+            item.setParent(None)
         self.items.clear()
 
     def get_resource(self):
@@ -181,6 +186,25 @@ class ArrayResource(Resource, ResourceInput, ResourceOutput):
 
     def __init__(self, data: list):
         self.data = data
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __len__(self):
+        return len(self.data)
+
+    def append(self,item):
+        self.data.append(item)
+
+    def pop(self,key):
+        return self.data.pop(key)
+
+    def insert(self, index, obj):
+        self.data.insert(index, obj)
+
 
     def __repr__(self):
         return f"{type(self).__name__}({self.data})"
@@ -224,6 +248,7 @@ class ArrayResource(Resource, ResourceInput, ResourceOutput):
                         return None
                     data.append(new_item)
                 return cls(data)
+
 
     def show_data(self, label:str) -> QWidget:
         w = QWidget()
