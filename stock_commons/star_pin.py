@@ -1,6 +1,9 @@
 import numpy as np
 
-from RecoResources import CombineResource, ResourceRequest, ArrayResource, StringResource, ResourceStorage
+from RecoResources import CombineResource, ResourceRequest, ArrayResource, StringResource, ResourceStorage, \
+    AlternatingResource, ResourceVariant
+from RecoResources import BlankResource
+from RecoResources.prior_resource import NormalMaker
 from stars import StarList, Star
 from stars.star_parser import parse_one_star
 import numba as nb
@@ -24,13 +27,57 @@ class StarEntry(StringResource):
         # To prohibit its creation from any string
         return None
 
+
+class BrightnessModifier(object):
+    def get_rng_modifier(self, star):
+        raise NotImplementedError
+
+class UMagnitudeBasedModifier(BlankResource, BrightnessModifier):
+    Label = "U band magnitude"
+    def get_rng_modifier(self, star):
+        return 10**(-star.umag/2.5)
+
+
+class BMagnitudeBasedModifier(BlankResource, BrightnessModifier):
+    Label = "B band magnitude"
+    def get_rng_modifier(self, star):
+        return 10**(-star.bmag/2.5)
+
+
+class VMagnitudeBasedModifier(BlankResource, BrightnessModifier):
+    Label = "Visible magnitude"
+    def get_rng_modifier(self, star):
+        return 10**(-star.vmag/2.5)
+
+
+class ManualRandomModifier(CombineResource, BrightnessModifier):
+    Fields = ResourceRequest({
+        "amplitude": dict(display_name="Signal amplitude", default_value = NormalMaker.template(1.0,0.001))
+    })
+
+    def get_rng_modifier(self, star):
+        return self.data.get_resource("amplitude").create_distribution("Amplitude_" +
+                                                                       star.get_star_identifier().replace(" ", "_"))
+
+class AmplitudeModifierAlternate(AlternatingResource):
+    Variants = [
+        ResourceVariant(UMagnitudeBasedModifier,"U magnitude"),
+        ResourceVariant(BMagnitudeBasedModifier, "B magnitude"),
+        ResourceVariant(VMagnitudeBasedModifier, "V magnitude"),
+        ResourceVariant(ManualRandomModifier,"Manual")
+    ]
+
+    def get_rng_modifier(self, star):
+        return self.value.get_rng_modifier(star)
+
 class StarPinResource(CombineResource):
     Fields = ResourceRequest({
         "star_id": dict(display_name="Star",type_=StarEntry, default_value="Sirius"),
         "fixed_frame": dict(display_name="Fixed frame", default_value=0),
         "fixed_x0": dict(display_name="Fixed X [mm]", default_value=0.0),
         "fixed_y0": dict(display_name="Fixed Y [mm]", default_value=0.0),
-        "threshold": dict(display_name="Signal threshold", default_value=1.0)
+        "threshold": dict(display_name="Signal threshold", default_value=1.0),
+        "amplitude": dict(display_name="Amplitude", type_=AmplitudeModifierAlternate)
     })
 
     def get_star(self):
@@ -68,15 +115,23 @@ class StarPinResource(CombineResource):
         yi = self.data.get("fixed_y0")
         return ti, xi, yi
 
-def deduplicate(arr:list):
+    def get_rng_modifier(self):
+        return self.data.get_resource("amplitude").get_rng_modifier(self.get_star())
+
+
+def deduplicate(arr:list, cmp=None):
+    if cmp is None:
+        cmp = lambda x,y: x==y
     i = 0
     while i<len(arr):
         alive = True
         for j in range(i+1,len(arr)):
-            if arr[i]==arr[j]:
-                arr.pop(i)
+            if cmp(arr[i],arr[j]):
+                print("Removed duplicate", arr.pop(i))
                 alive = False
                 break
+            else:
+                print(arr[i],"!=",arr[j])
         if alive:
             i += 1
     return arr
@@ -89,6 +144,23 @@ class PinnedStars(ArrayResource):
         a = [item.get_star() for item in self.data]
         a = deduplicate(a)
         return StarList(a)
+
+    def get_stars_with_amplitudes(self):
+        # a = [item.get_star() for item in self.data]
+        a = dict()
+        for item in self.data:
+            star = item.get_star()
+            key = star.get_star_identifier()
+            if key not in a.keys():
+                a[key] = (star, item.get_rng_modifier())
+        av = list(a.values())
+        # a = [(item.get_star(), item.get_rng_modifier()) for item in self.data]
+        # a = deduplicate(a, cmp=lambda x,y: x[0] == y[0])
+        av = list(zip(*av))
+        av[0] = list(av[0])
+        av[1] = list(av[1])
+        print("Stars and amplitudes",av[0],av[1])
+        return StarList(av[0]), av[1]
 
     def add_star(self,star_id):
         parsed_star = parse_one_star(star_id)
