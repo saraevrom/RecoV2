@@ -67,6 +67,19 @@ class Resource(object):
         raise ValueError(f"Unknown resource of type {data['class']}")
 
     @classmethod
+    def unpack_safe(cls, data:dict):
+        """
+        Recover resource made with pack() function. Will guess its type.
+        If resource fails to load it will be returned as PartiallyLoadedResource
+        """
+        from RecoResources import PartiallyLoadedResource
+        try:
+            res = cls.unpack(data)
+            return res
+        except ValueError:
+            return PartiallyLoadedResource(data)
+
+    @classmethod
     def try_transform(cls, data):
         """
         Attempts to create resource from other type by picking suiting resource
@@ -174,7 +187,17 @@ class ResourceStorage(object):
         Restore resource storage from JSON serializable data.
         """
         workon = ResourceStorage()
-        resources = {k:Resource.unpack(data[k]) for k in data.keys()}
+        resources = {k:Resource.unpack_safe(data[k]) for k in data.keys()}
         workon.resources = resources
         return workon
 
+    def try_load_partial_resources(self):
+        from RecoResources import PartiallyLoadedResource
+        for key in self.resources.keys():
+            src = self.resources[key]
+            if isinstance(src, PartiallyLoadedResource):
+                try:
+                    res = src.load_resource()
+                    self.resources[key] = res
+                except ValueError:
+                    warnings.warn(f"Failed to load resource {src.json_data['class']}")

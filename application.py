@@ -115,6 +115,8 @@ class RecoResourcesBundle(object):
                     self.display_list = v.DisplayList
                     self.runner = v
                     self.resource_storage.set_resource(SCRIPT_KEY, script)
+                    Resource.index_subclasses(True)
+                    self.resource_storage.try_load_partial_resources()
 
     def run_model(self):
         if self.runner is None:

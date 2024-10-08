@@ -21,6 +21,7 @@ from RecoResources.pymc_trace import TraceResource
 from RecoResources.detector_resource import DetectorResource
 from RecoResources.time_resource import TimeResource
 from RecoResources.star_list_resource import StarListResource
+from RecoResources.partially_loaded_resource import PartiallyLoadedResource
 
 
 
