@@ -148,7 +148,7 @@ class PadamoPixel(object):
                 return True
         return False
 
-    def vertices_raycast(self, f):
+    def vertices_raycast(self, f, matrix=None):
         '''
         Creates directions for its vertices
         :param f: focal distance
@@ -162,8 +162,10 @@ class PadamoPixel(object):
         ys = np.append(ys,ys[0])
 
         zs = np.full((len(self.vertices)+1,),f)
-        vec = Vector3(xs,ys,zs).normalized()
-        return vec
+        vec = Vector3(xs,ys,zs)
+        if matrix is not None:
+            vec = (matrix@vec.to_column4()).to_vec4().to_vec3()
+        return vec.normalized()
 
 
 def tri_sign(p1,p2,p3):
@@ -266,13 +268,13 @@ class PadamoDetector(object):
                 maxy = altmax(d, maxy)
         return minx, maxx, miny, maxy
 
-    def vertices_raycast(self,f:float):
+    def vertices_raycast(self,f:float, matrix=None):
         '''
         Makes direction vectors for pixels
         :param f:
         :return:
         '''
-        return [pixel.vertices_raycast(f) for pixel in self.pixels]
+        return [pixel.vertices_raycast(f,matrix) for pixel in self.pixels]
 
     def find_pixel_id_in_position(self,point):
         for pixel in self.pixels:
