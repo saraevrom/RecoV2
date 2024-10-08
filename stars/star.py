@@ -177,7 +177,6 @@ class StarList(object):
     def new_empty(cls):
         return cls([])
 
-
     def __repr__(self):
         return f"Stars({repr(self.stars)})"
 
@@ -194,6 +193,9 @@ class StarList(object):
 
     def __setitem__(self, key, value):
         self.stars[key] = value
+
+    def __len__(self):
+        return len(self.stars)
 
     @classmethod
     def fetch_filtered(cls,required_keys=None,**kwargs):
