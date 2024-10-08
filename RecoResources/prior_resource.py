@@ -262,6 +262,28 @@ class CauchyMaker(CombineResource, DistributionMaker):
         return DistributionResource(CauchyMaker(data))
 
 
+class VonMisesMaker(CombineResource, DistributionMaker):
+    Fields = ResourceRequest({
+        "mu": dict(display_name="Mean", default_value=0.0),
+        "kappa": dict(display_name="Concentration (κ)", default_value=0.01)
+    })
+
+    def get_dist(self):
+        return pm.VonMises.dist(mu=self.data.get("mu"),kappa=self.data.get("kappa"))
+
+    def create_distribution(self, name:str):
+        return pm.VonMises(name,mu=self.data.get("mu"),kappa=self.data.get("kappa"))
+
+    def get_estimation(self):
+        return self.data.get("mu")
+
+    @staticmethod
+    def template(mu,kappa):
+        data = ResourceStorage()
+        data.set("mu",mu)
+        data.set("kappa",kappa)
+        return DistributionResource(VonMisesMaker(data))
+
 class DistributionResource(AlternatingResource):
     Variants = [
         ResourceVariant(ConstantMaker,"Constant"),
@@ -276,6 +298,7 @@ class DistributionResource(AlternatingResource):
         ResourceVariant(FlatMaker, "Flat"),
         ResourceVariant(HalfFlatMaker, "Half-flat"),
 
+        ResourceVariant(VonMisesMaker, "VonMises"),
     ]
 
     def create_distribution(self, name:str):
