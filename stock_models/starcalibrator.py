@@ -10,6 +10,7 @@ from RecoResources import ResourceStorage
 from padamo_rs_detector_parser import PadamoDetector
 from reco_prelude import ReconsructionModel, ResourceRequest, HDF5Resource, TimeResource, DetectorResource
 from reco_prelude import template_normal, NumpyArrayResource, Scene, template_exponent, template_halfnormal
+from RecoResources.prior_resource import ConstantMaker
 from transform import Transform, unixtime_to_era, Quaternion, Vector3, TransformBuilder, observatory_transform
 from transform import ecef_align, projection_matrix, simple_projection_matrix, Vector4
 from stars import StarList
@@ -153,6 +154,8 @@ class SkyScene(Scene):
         #axes.scatter(x[visible], y[visible], s=s[visible], c=c)
         ralt,az = anti_altaz_represent(x[visible],y[visible],z[visible])
         axes.scatter(ralt*np.sin(az),ralt*np.cos(az), s=s[visible], c=c)
+        dx = resources.get_resource("plane_offset_x").get_estimation()
+        dy = resources.get_resource("plane_offset_y").get_estimation()
 
         # Drawing FOV
         detector_data = resources.try_get("detector")
@@ -165,8 +168,14 @@ class SkyScene(Scene):
                 [0,0,1,0],
                 [0,0,0,1]
             ])
+            off = Matrix([
+                [1, 0, 0, dx],
+                [0, 1, 0, dy],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]
+            ])
             mv = view_matrix @ model @ neg_x
-            for pixel in detector_data.vertices_raycast(f):
+            for pixel in detector_data.vertices_raycast(f,off):
                 col = pixel.to_column4()
                 col = (mv @ col).to_vec4().to_vec3()
                 x, y, z = col.unpack()
@@ -253,9 +262,11 @@ class DetectorScene(Scene):
         earth, observatory, detector = dat
         suitable_stars = get_stars()
         f = resources.get_resource("f").get_estimation()
+        dx = resources.get_resource("plane_offset_x").get_estimation()
+        dy = resources.get_resource("plane_offset_y").get_estimation()
         swap_x = Matrix([
-            [-1,0,0,0],
-            [ 0,1,0,0],
+            [-1,0,0,-dx],
+            [ 0,1,0,-dy],
             [ 0,0,1,0],
             [ 0,0,0,1]
         ])
@@ -310,6 +321,8 @@ class DetectorScene(Scene):
         return False
 
 
+
+
 class StellarModel(ReconsructionModel):
     RequestedResources = ResourceRequest({
         "detector": dict(display_name="Detector", type_=DetectorResource),
@@ -331,6 +344,11 @@ class StellarModel(ReconsructionModel):
                   category="Priors"),
         "f": dict(display_name="Focal distance [mm]", default_value=template_normal(150.0,1.0),
                   category="Priors"),
+        "plane_offset_x": dict(display_name="Focal plane offset X", default_value=ConstantMaker.template(0.0),
+                               category="Priors"),
+        "plane_offset_y": dict(display_name="Focal plane offset Y", default_value=ConstantMaker.template(0.0),
+                               category="Priors"),
+        "use_cauchy":dict(display_name="Use cauchy error", default_value=True,category="Priors"),
         "star_list": dict(display_name="Stars", type_=PinnedStars, category="Star selection")
         # "stars": dict(display_name="Stars", type_=StarListResource),
         # "pdm_width": dict(display_name="PDM width [pixels]", default_value=8),
@@ -370,18 +388,22 @@ class StellarModel(ReconsructionModel):
             earth, observatory,detector = scene_3d(resources, era, orientation.get_prior, backend=pm.math)
             p = projection_matrix(f)
             v = detector.view_matrix()
+            dx = resources.get_resource("plane_offset_x").create_distribution("dX")
+            dy = resources.get_resource("plane_offset_y").create_distribution("dY")
             neg_x = Matrix([
-                [-1,0,0,0],
-                [0,1,0,0],
+                [-1,0,0,-dx],
+                [0,1,0,-dy],
                 [0,0,1,0],
                 [0,0,0,1]
             ])
             vp = neg_x @ p @ v
 
-            chosen_stars = resources.get_resource("star_list").get_stars()
+            chosen_stars, star_amplitudes = resources.get_resource("star_list").get_stars_with_amplitudes()
 
             estimations = []
             observed_data = []
+            star_cache = dict()
+
             for pixel in detector_geometry.pixels:
                 i = pixel.index
                 mask_index = (slice(None),)+i
@@ -391,13 +413,22 @@ class StellarModel(ReconsructionModel):
                 if mask_row.any():
                     min_x, max_x, min_y, max_y = pixel.get_bounds()
                     sum_intensity = None
-                    for star in chosen_stars:
-                        eci = star.eci_direction.to_column4()
-                        x,y,z = (vp@eci).to_vec4().to_vec3().unpack()
+                    for star_index in range(len(chosen_stars)):
+                        star = chosen_stars[star_index]
+                        key = star.get_star_identifier()
+                        #print("STAR processing", star, chosen_stars)
+
+                        ampl = star_amplitudes[star_index]
+
+                        if key not in star_cache.keys():
+                            eci = star.eci_direction.to_column4()
+                            x1,y1,z1 = (vp@eci).to_vec4().to_vec3().unpack()
+                            star_cache[key] = (x1,y1,z1,amplitude * ampl)
+                        x,y,z,pre_e0 = star_cache[key]
                         x = x[mask_row]
                         y = y[mask_row]
                         z = z[mask_row]
-                        e0 = pt.switch(z>0, amplitude * 10 ** (-star.umag), 0.0)
+                        e0 = pt.switch(z>0, pre_e0, 0.0)
                         track_v = e0*d_erf(min_x,max_x,x,sigma_psf)*d_erf(min_y,max_y,y,sigma_psf)
                         if sum_intensity is None:
                             sum_intensity = track_v
@@ -411,9 +442,12 @@ class StellarModel(ReconsructionModel):
             tensors = pt.concatenate(estimations)
             observed = np.concatenate(observed_data)
             print("Final shape test",tensors.shape.eval(),observed.shape)
-            #pm.Normal("likelyhood", mu=tensors, sigma=sigma, observed=observed)
-            pm.Cauchy("likelyhood", alpha=tensors, beta=sigma, observed=observed)
+            if resources.get("use_cauchy"):
+                res = pm.Cauchy("likelyhood", alpha=tensors, beta=sigma, observed=observed)
+            else:
+                res = pm.Normal("likelyhood", mu=tensors, sigma=sigma, observed=observed)
 
+            #model.profile(res).summary()
             trace = resources.get_resource("pymc_sampling").sample()
             resources.set("trace", trace)
 
