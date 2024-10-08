@@ -36,6 +36,8 @@ class Drawer(QWidget):
         self.scene_selector.currentIndexChanged.connect(self.replot)
         self.replot_hook = None
         self.event_sync_hook = None
+        self._last_variant = None
+        self._settings_storage = dict()
 
     def notify(self, storage):
         from application import RecoResourcesBundle
@@ -83,13 +85,27 @@ class Drawer(QWidget):
             self.replot_hook()
         if self.runner is not None and self.storage is not None:
             #print("Replotting...")
+            if self._last_variant is not None:
+                print("Remembering view", self._last_variant)
+                x_vi = self.ax.xaxis.get_view_interval()
+                y_vi = self.ax.yaxis.get_view_interval()
+                xlim = self.ax.get_xlim()
+                ylim = self.ax.get_ylim()
+                self._settings_storage[self._last_variant] = x_vi, y_vi, xlim, ylim
             self.clear_plot()
             var = self.get_variant()
             try:
                 self.runner.draw_scene(self.storage, self.fig,self.ax, var)
+                self._last_variant = var
             except Exception: # Explicit silence
                 print(traceback.format_exc())
                 self.clear_plot()
+            if var in self._settings_storage.keys():
+                x_vi, y_vi, xlim, ylim = self._settings_storage[var]
+                self.ax.set_xlim(*xlim)
+                self.ax.set_ylim(*ylim)
+                self.ax.xaxis.set_view_interval(*x_vi)
+                self.ax.yaxis.set_view_interval(*y_vi)
             self.commit()
         else:
             print("No runner")
@@ -97,6 +113,10 @@ class Drawer(QWidget):
     def allow_callbacks(self):
         res = not self.toolbar.mode.strip()
         return res
+
+    def clear_zooms(self):
+        self._settings_storage.clear()
+        self._last_variant = None
 
     def on_click(self,event):
         if self.runner is not None and self.storage is not None and self.allow_callbacks():

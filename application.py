@@ -299,6 +299,7 @@ class PADAMOReco(QMainWindow):
         self.right_panel_data.addWidget(self.action_list)
 
         self.add_action("Pull data",self.on_dry_run)
+        self.add_action("Forget zooming",self.on_forget_zooms)
         self.add_action("Reconstruct",self.on_run)
         self.add_action("Stop reconstruction",self.on_stop)
 
@@ -396,6 +397,7 @@ class PADAMOReco(QMainWindow):
                 self._push_resources()
                 self._sync_outputs()
                 self._refresh_actions()
+                self.plotter.clear_zooms()
                 self.on_plotter_notify()
             except:
                 print(traceback.format_exc())
@@ -409,6 +411,7 @@ class PADAMOReco(QMainWindow):
             self._push_resources()
             self._sync_outputs()
             self._refresh_actions()
+            self.plotter.clear_zooms()
             self.on_plotter_notify()
 
     def on_save_model(self):
@@ -478,3 +481,7 @@ class PADAMOReco(QMainWindow):
     def on_stop(self):
         if self.worker is not None:
             self.worker.interrupt()
+
+    def on_forget_zooms(self):
+        self.plotter.clear_zooms()
+        self.plotter.replot()
