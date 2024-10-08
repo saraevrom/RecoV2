@@ -28,14 +28,14 @@ STOCK_SRCDIR = os.path.join(BASEDIR,"stock_models")
 STOCK_COMMONS_SRCDIR = os.path.join(BASEDIR,"stock_commons")
 
 class ActionWrapper(object):
-    def __init__(self, callable, resources):
+    def __init__(self, callable, resources_provider):
         self.callable = callable
-        self.resources = resources
+        self.resources_provider = resources_provider
 
     def __call__(self, *args, **kwargs):
-        self.callable(self.resources,*args,**kwargs)
+        self.callable(self.resources_provider.resource_storage,*args,**kwargs)
 
-class PostporcessedActionWrapper(object):
+class PostprocessedActionWrapper(object):
     def __init__(self, action, event_callback):
         self.action = action
         self.event_callback = event_callback
@@ -131,7 +131,7 @@ class RecoResourcesBundle(object):
             # def action(*args):
             #     return action0(self.resource_storage)
             print("Got action",k, label,action0)
-            action = ActionWrapper(action0,self.resource_storage)
+            action = ActionWrapper(action0,self)
             actions[k] = label, action
         return actions
 
@@ -347,7 +347,7 @@ class PADAMOReco(QMainWindow):
             #     res = action(*args)
             #     self.on_plotter_notify()
             #     return res
-            postprocessed_action = PostporcessedActionWrapper(action=action,event_callback=self.on_plotter_notify)
+            postprocessed_action = PostprocessedActionWrapper(action=action, event_callback=self.on_plotter_notify)
 
             self.action_list.add_action(label, postprocessed_action)
 
