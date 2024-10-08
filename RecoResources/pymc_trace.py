@@ -1,16 +1,13 @@
 import tempfile, shutil, base64
-from itertools import compress
 
-import matplotlib.pyplot as plt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QPushButton
 from PyQt6.QtWidgets import QLineEdit
 from PyQt6.QtGui import QIntValidator
 from PyQt6 import QtCore
 from arviz.data.inference_data import  InferenceData
 import arviz as az
-import pandas as pd
 
-from RecoResources.resource import Resource
+from RecoResources.core.resource import Resource
 from RecoResources.resource_output import ResourceOutput
 
 az.rcParams['data.load'] = 'eager'

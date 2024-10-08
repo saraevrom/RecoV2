@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFrame, QLabel
-from RecoResources.resource import ResourceStorage
+from RecoResources.core.resource import ResourceStorage
 
 
 class DisplayList(object):

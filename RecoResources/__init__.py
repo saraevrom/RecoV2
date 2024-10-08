@@ -1,4 +1,6 @@
-from RecoResources.resource import ResourceStorage,Resource
+from RecoResources.core.resource import ResourceStorage,Resource
+from RecoResources.core.partially_loaded_resource import PartiallyLoadedResource
+
 from RecoResources.resource_input import ResourceInput, ResourceInputWidget, ResourceForm, ResourceRequest
 from RecoResources.resource_output import ResourceOutput, ResourceDisplay, DisplayList
 
@@ -21,7 +23,6 @@ from RecoResources.pymc_trace import TraceResource
 from RecoResources.detector_resource import DetectorResource
 from RecoResources.time_resource import TimeResource
 from RecoResources.star_list_resource import StarListResource
-from RecoResources.partially_loaded_resource import PartiallyLoadedResource
 
 
 

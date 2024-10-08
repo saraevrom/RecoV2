@@ -1,4 +1,4 @@
-from RecoResources import Resource
+from .resource import Resource
 from typing import Optional
 import warnings
 

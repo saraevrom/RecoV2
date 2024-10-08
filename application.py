@@ -6,6 +6,7 @@ from typing import Optional, Type
 import shutil
 import inspect
 import json, tempfile
+import gc
 
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QWidget, QMainWindow, QPushButton, QMenu, QTabWidget, QHBoxLayout, QScrollArea, QVBoxLayout
@@ -117,6 +118,7 @@ class RecoResourcesBundle(object):
                     self.resource_storage.set_resource(SCRIPT_KEY, script)
                     Resource.index_subclasses(True)
                     self.resource_storage.try_load_partial_resources()
+                    gc.collect(0)
 
     def run_model(self):
         if self.runner is None:

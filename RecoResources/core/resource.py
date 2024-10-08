@@ -1,5 +1,5 @@
 import warnings
-from typing import Type
+from typing import Type, Self
 from PyQt6.QtWidgets import QWidget, QFrame, QVBoxLayout
 
 
@@ -60,11 +60,18 @@ class Resource(object):
         """
         Resource.index_subclasses()
         #print("CLTEST",cls.SUBCLASSES)
+        # for c in cls.SUBCLASSES:
+        #     if c.identifier()==data["class"]:
+        #         return c.deserialize(data["data"])
+        c = cls.lookup_resource(data["class"])
+        return c.deserialize(data["data"])
+
+    @classmethod
+    def lookup_resource(cls, identifier) -> Self:
         for c in cls.SUBCLASSES:
-            if c.identifier()==data["class"]:
-                return c.deserialize(data["data"])
-        print("Available subclasses:",[i.__name__ for i in cls.SUBCLASSES])
-        raise ValueError(f"Unknown resource of type {data['class']}")
+            if c.identifier() == identifier:
+                return c
+        raise ValueError(f"Unknown resource of type {identifier}")
 
     @classmethod
     def unpack_safe(cls, data:dict):
@@ -72,7 +79,7 @@ class Resource(object):
         Recover resource made with pack() function. Will guess its type.
         If resource fails to load it will be returned as PartiallyLoadedResource
         """
-        from RecoResources import PartiallyLoadedResource
+        from .partially_loaded_resource import PartiallyLoadedResource
         try:
             res = cls.unpack(data)
             return res
@@ -192,7 +199,7 @@ class ResourceStorage(object):
         return workon
 
     def try_load_partial_resources(self):
-        from RecoResources import PartiallyLoadedResource
+        from .partially_loaded_resource import PartiallyLoadedResource
         for key in self.resources.keys():
             src = self.resources[key]
             if isinstance(src, PartiallyLoadedResource):

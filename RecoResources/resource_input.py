@@ -1,6 +1,6 @@
-from typing import Type, Dict, Union, Optional
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFrame, QSizePolicy, QLabel, QTabWidget, QScrollArea
-from RecoResources.resource import Resource, ResourceStorage
+from typing import Type, Union, Optional
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFrame, QTabWidget, QScrollArea
+from RecoResources.core.resource import Resource, ResourceStorage
 
 
 class FocusingTabWidget(QTabWidget):

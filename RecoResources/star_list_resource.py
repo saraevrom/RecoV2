@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QWidget
 
-from .resource import Resource
+from RecoResources.core.resource import Resource
 from .resource_output import ResourceOutput
 from .resource_input import ResourceInput, ResourceInputWidget
 from .strict_functions import Default

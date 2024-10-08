@@ -1,8 +1,7 @@
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QDateTimeEdit, QWidget, QLineEdit
-from PyQt6.QtCore import QTimeZone, QDateTime
 
 from datetime import datetime, timezone
-from .resource import Resource
+from RecoResources.core.resource import Resource
 from .resource_output import ResourceOutput
 from .resource_input import ResourceInput, ResourceInputWidget
 from .strict_functions import Default

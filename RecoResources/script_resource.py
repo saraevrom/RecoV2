@@ -10,7 +10,6 @@ class ScriptResource(FileLoadedResource):
     def run_script(self, globals_=None):
         if globals_ is None:
             globals_ = dict()
-        #
         if self.value is not None:
             #print("Script", self.value.unwrap())
             exec(self.value.unwrap(),globals_)
