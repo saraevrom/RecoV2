@@ -117,9 +117,12 @@ class RecoResourcesBundle(object):
         if not self.resource_storage.has_resource(SCRIPT_KEY):
             return
         script = self.resource_storage.get_resource(SCRIPT_KEY)
+        # STRIP
         self._update_includes(script)
+
         self._load_script(script)
 
+    # STRIP
     def _update_includes(self, script):
         from RecoResources.RecoResourcesCore import ScriptBundleResource
         modules = script.get_includes()
@@ -133,6 +136,7 @@ class RecoResourcesBundle(object):
             print("Including module",name)
             res = ScriptBundleResource.from_singlefile_module_name(name, [self.additional_modules])
             self.resource_storage.set_resource(f"RESOURCE_BUNDLE_{name}", res)
+    # END
 
     def _load_script(self,script):
 

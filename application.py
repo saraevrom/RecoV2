@@ -331,7 +331,8 @@ class PADAMOReco(QMainWindow):
             print("COMMONS TGT DIR", tgtdir)
             for file in os.listdir(STOCK_COMMONS_SRCDIR):
                 srcfile = os.path.join(STOCK_COMMONS_SRCDIR, file)
-                shutil.copy(srcfile, tgtdir)
+                if os.path.isfile(srcfile):
+                    shutil.copy(srcfile, tgtdir)
 
     def _run_parallel(self):
         try:

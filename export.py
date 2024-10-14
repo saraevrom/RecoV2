@@ -27,6 +27,8 @@ def clone_data(resources: ResourceStorage):
 
 def export_model(model:ResourceStorage, tgt_path:str, reset_keys, additional_pkgs):
     print("Exporting model to", tgt_path)
+    print("Reset variables", reset_keys)
+    print("Additional packages", additional_pkgs)
     tgt = Path(tgt_path)
     tgt.mkdir(parents=True,exist_ok=True)
 
@@ -74,7 +76,7 @@ class Checklist(QWidget):
     def get_checks(self) -> dict[str, bool]:
         res = dict()
         for key in self.checkboxes.keys():
-            res[key] = self.checkboxes[key]
+            res[key] = self.checkboxes[key].isChecked()
         return res
 
 class Exporter(QDialog):

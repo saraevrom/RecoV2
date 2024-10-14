@@ -1,4 +1,2 @@
-prior_resource.py
 resource_input.py
 resource_output.py
-strict_functions.py

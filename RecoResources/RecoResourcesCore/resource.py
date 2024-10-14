@@ -179,7 +179,7 @@ class ResourceStorage(object):
         """
         Turn resources into JSON serializable object
         """
-        print(self.resources)
+        #print(self.resources)
         return {k:self.resources[k].pack() for k in self.resources.keys()}
 
     def set_resource(self,key,resource:Resource):
@@ -193,6 +193,11 @@ class ResourceStorage(object):
         Checks if resource with given key exists
         """
         return key in self.resources.keys()
+
+    def has_resources(self,*keys):
+        own_keys = set(list(self.resources.keys()))
+        keys1 = set(keys)
+        return keys1.issubset(own_keys)
 
     def try_get(self,key):
         """
