@@ -2,7 +2,7 @@ import numpy as np
 import pytensor.tensor
 
 from RecoResources import CombineResource, AlternatingResource, ResourceRequest, ResourceVariant
-from RecoResources.prior_resource import template_normal, DistributionResource
+from RecoResources.RecoResourcesShipped.prior_resource import template_normal, DistributionResource
 from transform import Quaternion
 from transform.astronomy import ecef_align
 
@@ -60,6 +60,7 @@ def equatorial_fields(template):
         "own_rotation": dict(display_name="Own rotation [°]", default_value=template()),
     })
 
+
 def local_fields(template):
     return ResourceRequest({
         "alt": dict(display_name="Altitude [°]", default_value=template()),
@@ -91,18 +92,22 @@ class LocalBaseOrientation(CombineResource,Orientation):
 
 class EquatorialPriorResource(EquatorialBaseOrientation):
     Fields = equatorial_fields(lambda: template_normal(0.0, 1.0))
+    pass
 
 
 class EquatorialPointResource(EquatorialBaseOrientation):
     Fields = equatorial_fields(lambda: 0.0)
+    pass
 
 
 class LocalPriorResource(LocalBaseOrientation):
     Fields = local_fields(lambda: template_normal(0.0, 1.0))
+    pass
 
 
 class LocalPointResource(LocalBaseOrientation):
     Fields = local_fields(lambda: 0.0)
+    pass
 
 
 class OrientationPriorResource(AlternatingResource):
@@ -118,6 +123,7 @@ class OrientationPriorResource(AlternatingResource):
         return self.value.get_prior(local,prefix)
 
 
+
 class OrientationPointResource(AlternatingResource):
     Variants = [
         ResourceVariant(EquatorialPointResource,"Equatorial"),
@@ -129,3 +135,4 @@ class OrientationPointResource(AlternatingResource):
 
     def get_prior(self,local:Quaternion,prefix):
         return self.value.get_prior(local,prefix)
+

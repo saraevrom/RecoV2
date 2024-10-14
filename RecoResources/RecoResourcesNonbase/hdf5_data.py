@@ -1,23 +1,25 @@
-from typing import Optional
 import io, base64
 
 import h5py
 import numpy as np
-from PyQt6.QtWidgets import QLabel, QPushButton, QHBoxLayout, QFileDialog, QDialog, QTreeWidget, QTreeWidgetItem, \
-    QVBoxLayout, QWidget, QMessageBox
 
-from RecoResources import Resource, ResourceInput, ResourceInputWidget, ResourceOutput
-from RecoResources.basic_resources import ValuedResource
+# STRIP IMPORTS
+from PyQt6.QtWidgets import QLabel, QPushButton, QHBoxLayout, QDialog, QTreeWidget, QTreeWidgetItem
+from PyQt6.QtWidgets import QVBoxLayout, QWidget, QMessageBox
+
+from RecoResources import Resource
+
+# STRIP IMPORTS
+from RecoResources import ResourceInput, ResourceInputWidget, ResourceOutput
 import workspace
-from pathlib import Path
 
-
+# STRIP CLASS
 class TreeItem(QTreeWidgetItem):
     def __init__(self,main,path):
         super().__init__(main)
         self.path = path
 
-
+# STRIP
 def populate_tree(tree,view,path=""):
     for k in view.keys():
         v = view[k]
@@ -28,8 +30,10 @@ def populate_tree(tree,view,path=""):
             populate_tree(item,v,item.path)
         else:
             item.setText(1,f"Shape: {v.shape}")
+# END
 
 
+# STRIP CLASS
 class HDF5ViewDialog(QDialog):
     def __init__(self,filename,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -86,6 +90,8 @@ class HDF5ViewDialog(QDialog):
         dialog.exec()
         return dialog.result_field
 
+
+# STRIP CLASS
 class HDF5ResourceInput(ResourceInputWidget):
     def __init__(self, refclass, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -137,7 +143,9 @@ class HDF5ResourceInput(ResourceInputWidget):
         self._set_content(resource.value)
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class HDF5Resource(Resource,ResourceInput, ResourceOutput):
+    # STRIP
     InputWidget = HDF5ResourceInput
     DialogCaption = "Open HDF5 file"
     Filter = "HDF5 data (*.h5)"
@@ -145,9 +153,21 @@ class HDF5Resource(Resource,ResourceInput, ResourceOutput):
     @classmethod
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(cls)
+    # END
 
     def __init__(self,value):
         self.value = value
+
+    def set_value(self, value):
+        self.value = value
+
+    # STRIP
+    def resetable(self):
+        return True
+
+    def reset(self):
+        self.set_value(np.array([0.0]))
+    # END
 
     def __repr__(self):
         return f"{type(self).__name__}=({self.value})"
@@ -175,6 +195,7 @@ class HDF5Resource(Resource,ResourceInput, ResourceOutput):
     def unwrap(self):
         return self.value
 
+    # STRIP
     @classmethod
     def ask_filename(cls):
         kwargs = dict(caption=cls.DialogCaption,filter=cls.Filter)
@@ -193,7 +214,7 @@ class HDF5Resource(Resource,ResourceInput, ResourceOutput):
             data = np.array(fp[field])
             return data
 
-    def show_data(self, label:str) ->QWidget:
+    def show_data(self, label:str) -> QWidget:
         w = QWidget()
         layout = QHBoxLayout()
         w.setLayout(layout)
@@ -204,3 +225,4 @@ class HDF5Resource(Resource,ResourceInput, ResourceOutput):
         else:
             layout.addWidget(QLabel(f"Data {self.value.shape}"))
         return w
+    # END

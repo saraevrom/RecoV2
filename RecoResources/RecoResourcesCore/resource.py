@@ -1,6 +1,15 @@
+import gc
+import traceback
 import warnings
 from typing import Type, Self
-from PyQt6.QtWidgets import QWidget, QFrame, QVBoxLayout
+from datetime import datetime
+
+#Stripping data for short resource declaration
+STRIP_ATTRIBUTES = [
+    "InputWidget", "create_widget", "input_is_available",
+    "show_data", "output_is_available", "pack_source" "source_dependencies"
+]
+STRIP_SUPERCLASSES = ["ResourceInput", "ResourceOutput", "Default"]
 
 
 class Resource(object):
@@ -15,6 +24,12 @@ class Resource(object):
         Identifier of class for pack/unpack
         """
         return cls.__name__
+
+    @classmethod
+    def creation_time(cls):
+        if not hasattr(cls, "__creation_time"):
+            setattr(cls,"__creation_time",datetime.now())
+        return getattr(cls, "__creation_time")
 
     def serialize(self):
         """
@@ -43,15 +58,26 @@ class Resource(object):
         """
         See what resources types do we have
         """
-        if cls.SUBCLASSES is None or force:
-            subclasses = []
+        if force:
+            cls.SUBCLASSES = None # Remove old resources to make them targets for GC
+        gc.collect()
+        if cls.SUBCLASSES is None:
+            subclasses = dict()
+            # res = []
             workon = [cls]
             while len(workon)>0:
                 elem = workon.pop(0)
-                subclasses.append(elem)
+                key = elem.identifier()
+                if key in subclasses:
+                    if elem.creation_time()>subclasses[key].creation_time():
+                        subclasses[key] = elem
+                else:
+                    subclasses[key] = elem
+                # res.append(elem)
                 workon.extend(elem.__subclasses__())
 
-            cls.SUBCLASSES = subclasses
+            # print("INDEXED", res)
+            cls.SUBCLASSES = list(subclasses.values())
 
     @classmethod
     def unpack(cls, data:dict):
@@ -68,6 +94,7 @@ class Resource(object):
 
     @classmethod
     def lookup_resource(cls, identifier) -> Self:
+        Resource.index_subclasses()
         for c in cls.SUBCLASSES:
             if c.identifier() == identifier:
                 return c
@@ -112,6 +139,17 @@ class Resource(object):
         """
         return None
 
+    def __eq__(self, other):
+        return self.identifier()==other.identifier()
+
+    # STRIP
+    def resetable(self):
+        return False
+
+    def reset(self):
+        raise NotImplementedError
+
+    # END
 
 class ResourceStorage(object):
     """
@@ -119,15 +157,23 @@ class ResourceStorage(object):
     """
     def __init__(self):
         self.resources = dict()
+        self.loaded_resources_bundles_track = dict()
 
-    def update_with(self, other):
-        self.resources.update(other.resources)
+    def update_with(self, other, except_data=None):
+        if except_data is None:
+            except_data = []
+        for key in other.resources.keys():
+            if key not in except_data:
+                self.resources[key] = other.resources[key]
+        self.loaded_resources_bundles_track.update(other.loaded_resources_bundles_track)
+
 
     def clear(self):
         """
         Remove all resources
         """
         self.resources.clear()
+        self.loaded_resources_bundles_track.clear()
 
     def serialize(self):
         """
@@ -208,3 +254,28 @@ class ResourceStorage(object):
                     self.resources[key] = res
                 except ValueError:
                     warnings.warn(f"Failed to load resource {src.json_data['class']}")
+
+    def load_bundles(self):
+        from .script_bundle_resource import ScriptBundleResource
+        for key in self.resources.keys():
+            src = self.resources[key]
+            if isinstance(src, ScriptBundleResource):
+                globs = {"__builtins__": __builtins__}
+                try:
+                    globs = src.run(globs)
+                    success = True
+                except Exception: # Will print traceback. No silencing
+                    print("Loading bundle error")
+                    print(traceback.format_exc())
+                    success = False
+                if success:
+                    self.loaded_resources_bundles_track[key] = globs
+                    Resource.index_subclasses(True)
+                # Why not outside the loop?
+                # To make resource instantly available for next ones.
+        gc.collect()
+
+    # STRIP
+    def get_resetables(self):
+        return [k for k in self.resources.keys() if self.resources[k].resetable()]
+    # END

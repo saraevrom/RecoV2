@@ -1,14 +1,15 @@
 import numpy as np
-import json
-from typing import Dict, Type
 
-from PyQt6.QtWidgets import QLabel, QLineEdit, QHBoxLayout, QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem
+# STRIP IMPORTS
+from PyQt6.QtWidgets import QLabel, QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem
 from PyQt6.QtWidgets import QApplication
 from PyQt6 import QtCore
-from RecoResources import ResourceInput, Resource, ResourceInputWidget, ResourceOutput
-from RecoResources.strict_functions import Default
+from RecoResources import ResourceOutput
+
+from RecoResources import Resource
 
 
+# STRIP CLASS
 class ArrayDisplay(QWidget):
     def __init__(self, label, value, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,8 +62,12 @@ class ArrayDisplay(QWidget):
                 self.clip.setText(s)
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class NumpyArrayResource(Resource, ResourceOutput):
     def __init__(self, value: np.ndarray):
+        self.value = value
+
+    def set_value(self,value: np.ndarray):
         self.value = value
 
     def serialize(self):
@@ -81,5 +86,15 @@ class NumpyArrayResource(Resource, ResourceOutput):
             return cls(x)
         return None
 
+    # STRIP
     def show_data(self, label: str) -> QWidget:
         return ArrayDisplay(label, self.value)
+    # END
+
+    # STRIP
+    def resetable(self):
+        return True
+
+    def reset(self):
+        self.set_value(np.array([0.0]))
+    # END

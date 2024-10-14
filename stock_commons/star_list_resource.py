@@ -1,12 +1,17 @@
+# STRIP
 from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QWidget
 
-from RecoResources.core.resource import Resource
-from .resource_output import ResourceOutput
-from .resource_input import ResourceInput, ResourceInputWidget
-from .strict_functions import Default
+from RecoResources import Resource
+
+# STRIP IMPORTS
+from RecoResources.resource_output import ResourceOutput
+from RecoResources.resource_input import ResourceInput, ResourceInputWidget
+from RecoResources.strict_functions import Default
+
 from stars import StarList, Star
 
 
+# STRIP CLASS
 class StarListInput(ResourceInputWidget):
     def __init__(self,ref,*args,**kwargs):
         self.ref = ref
@@ -43,12 +48,17 @@ class StarListInput(ResourceInputWidget):
         return self.last_data
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class StarListResource(Resource,ResourceInput,Default,ResourceOutput):
+
+    # STRIP
     InputWidget = StarListInput
 
     @classmethod
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(cls,*args,**kwargs)
+
+    # END
 
     def __init__(self, starlist:StarList):
         self.starlist = starlist
@@ -65,9 +75,11 @@ class StarListResource(Resource,ResourceInput,Default,ResourceOutput):
             starlist.append(Star.fetch_hr(hr))
         return cls(starlist)
 
+    # STRIP
     @classmethod
     def default(cls):
         return cls(StarList.new_empty())
+    # END
 
     def unwrap(self):
         return self.starlist
@@ -77,6 +89,7 @@ class StarListResource(Resource,ResourceInput,Default,ResourceOutput):
         if isinstance(x, StarList):
             return cls(x)
 
+    # STRIP
     def show_data(self, label:str) -> QWidget:
         qw = QWidget()
         layout = QVBoxLayout()
@@ -86,3 +99,4 @@ class StarListResource(Resource,ResourceInput,Default,ResourceOutput):
             layout.addWidget(QLabel(f"Star {i}\t{star.get_star_identifier()}"))
 
         return qw
+    # END

@@ -1,17 +1,21 @@
 import tempfile, shutil, base64
 
+# STRIP IMPORTS
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QCheckBox, QPushButton
 from PyQt6.QtWidgets import QLineEdit
 from PyQt6.QtGui import QIntValidator
 from PyQt6 import QtCore
-from arviz.data.inference_data import  InferenceData
+from RecoResources.resource_output import ResourceOutput
+
+from arviz.data.inference_data import InferenceData
 import arviz as az
 
-from RecoResources.core.resource import Resource
-from RecoResources.resource_output import ResourceOutput
+from RecoResources import Resource
 
 az.rcParams['data.load'] = 'eager'
 
+
+# STRIP CLASS
 class TraceDisplay(QWidget):
     def __init__(self,label,trace,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -131,6 +135,8 @@ class TraceDisplay(QWidget):
             fig.tight_layout()
             fig.show()
 
+
+# STRIP SUPERCLASSES EXCEPT Resource
 class TraceResource(Resource, ResourceOutput):
     def __init__(self,trace:InferenceData):
         self.trace = trace
@@ -164,5 +170,7 @@ class TraceResource(Resource, ResourceOutput):
             return cls(x)
         return None
 
+    # STRIP
     def show_data(self, label:str) -> QWidget:
         return TraceDisplay(label,self.trace)
+    # END

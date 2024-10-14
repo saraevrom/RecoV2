@@ -1,6 +1,6 @@
 from typing import Type, Union, Optional
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFrame, QTabWidget, QScrollArea
-from RecoResources.core.resource import Resource, ResourceStorage
+from RecoResources.RecoResourcesCore import Resource, ResourceStorage
 
 
 class FocusingTabWidget(QTabWidget):
@@ -42,7 +42,7 @@ class ResourceInput(object):
 class SingleResourceRequest(object):
     def __init__(self, type_:Optional[Type[Union[Resource,ResourceInput]]]=None,
                  display_name:Optional[str]=None, default_value:Optional[Resource]=None,category="Main"):
-        from RecoResources.basic_resources import remap_basic_values
+        from RecoResources.RecoResourcesBase.basic_resources import remap_basic_values
         if type_ is None and default_value is None:
             raise ValueError("at least type_ or default_value must be specified")
         self.default_value = remap_basic_values(default_value)
@@ -73,11 +73,12 @@ class ResourceRequest(object):
         self_keys = set(self.requests.keys())
         return base_keys.issubset(self_keys)
 
-
-    def add_request(self,key:str,type_:Optional[Type[Union[Resource,ResourceInput]]]=None,
+    def add_request(self,key:str,type_:Optional[Union[Type[Union[Resource,ResourceInput]],str]]=None,
                     display_name:Optional[str]=None,
                     default_value:Optional[Union[Resource,int,float,str,bool]]=None,
                     category="Main"):
+        if isinstance(type_,str):
+            type_ = Resource.lookup_resource(type_)
         self.requests[key] = SingleResourceRequest(type_,display_name,default_value,category=category)
 
     def labels(self):
@@ -213,3 +214,14 @@ class ResourceForm(QWidget):
         print("Change triggered")
         if self.changed_callback and self._enabled_callback:
             self.changed_callback()
+
+
+def pack_resource_request():
+    import inspect
+    src = ""
+    src += inspect.getsource(SingleResourceRequest) + "\n"
+    src += inspect.getsource(ResourceRequest) + "\n"
+    src = src.replace("Union[Resource,ResourceInput]", "Resource")
+    src = src.replace("from RecoResources.RecoResourcesBase.basic_resources import remap_basic_values",
+                      "#from RecoResources.RecoResourcesBase.basic_resources import remap_basic_values")
+    return src

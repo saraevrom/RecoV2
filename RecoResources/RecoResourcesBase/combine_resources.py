@@ -1,13 +1,17 @@
-from typing import Dict
+# STRIP
 from PyQt6.QtWidgets import QFrame, QWidget, QVBoxLayout, QLabel
 
-from RecoResources import Resource, ResourceInput, ResourceForm, ResourceOutput, ResourceRequest, ResourceInputWidget, \
-    ResourceStorage
+from RecoResources.RecoResourcesCore import Resource, ResourceStorage
 
+# STRIP
+from RecoResources import ResourceInput, ResourceForm, ResourceOutput, ResourceRequest, ResourceInputWidget
 from RecoResources import ResourceDisplay
 from RecoResources.strict_functions import Default
+# REPLACE
+# from RecoResources.dummy import DummyResourceRequest as ResourceRequest
+# END
 
-
+# STRIP CLASS
 class CombineResourceInput(ResourceInputWidget):
     def __init__(self, request, bound_resource_class, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,8 +42,10 @@ class CombineResourceInput(ResourceInputWidget):
         self.input.set_resources(resource.data)
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class CombineResource(Resource,ResourceInput,ResourceOutput,Default):
     Fields: ResourceRequest
+    # STRIP
     InputWidget = CombineResourceInput
 
     def __init__(self, data: ResourceStorage):
@@ -59,6 +65,7 @@ class CombineResource(Resource,ResourceInput,ResourceOutput,Default):
     def deserialize(cls,data):
         return cls(ResourceStorage.deserialize(data))
 
+    # STRIP
     @classmethod
     def create_widget(cls, *args, **kwargs):
         return cls.InputWidget(cls.Fields,cls,*args,**kwargs)
@@ -82,9 +89,11 @@ class CombineResource(Resource,ResourceInput,ResourceOutput,Default):
 
         return widget
 
-    def unwrap(self):
-        return self.data
-
     @classmethod
     def default(cls):
         return cls(None)
+    # END
+
+    def unwrap(self):
+        return self.data
+

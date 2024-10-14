@@ -1,13 +1,19 @@
+# STRIP
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QDateTimeEdit, QWidget, QLineEdit
 
 from datetime import datetime, timezone
-from RecoResources.core.resource import Resource
-from .resource_output import ResourceOutput
-from .resource_input import ResourceInput, ResourceInputWidget
-from .strict_functions import Default
+
+from RecoResources import Resource
+
+# STRIP IMPORTS
+from RecoResources.resource_output import ResourceOutput
+from RecoResources.resource_input import ResourceInput, ResourceInputWidget
+from RecoResources.strict_functions import Default
 
 UTC = timezone.utc
 
+
+# STRIP CLASS
 class TimeInput(ResourceInputWidget):
     def __init__(self,ref,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -40,12 +46,15 @@ class TimeInput(ResourceInputWidget):
         self.dt_selector.setDateTime(resource.dt)
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class TimeResource(Default, Resource, ResourceInput, ResourceOutput):
+    # STRIP
     InputWidget = TimeInput
 
     def __init__(self, dt: datetime):
         self.dt = dt
 
+    # STRIP
     @classmethod
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(cls,*args,**kwargs)
@@ -53,6 +62,7 @@ class TimeResource(Default, Resource, ResourceInput, ResourceOutput):
     @classmethod
     def default(cls):
         return cls(datetime.now(UTC))
+    # END
 
     def serialize(self):
         return self.dt.timestamp()
@@ -61,6 +71,7 @@ class TimeResource(Default, Resource, ResourceInput, ResourceOutput):
     def deserialize(cls,data):
         return cls(datetime.fromtimestamp(data,UTC))
 
+    # STRIP
     def show_data(self, label:str) ->QWidget:
         w = QWidget()
         layout = QHBoxLayout()
@@ -73,6 +84,7 @@ class TimeResource(Default, Resource, ResourceInput, ResourceOutput):
         layout.addWidget(non_editable_line_edit)
 
         return w
+    # END
 
     def unwrap(self):
         return self.dt

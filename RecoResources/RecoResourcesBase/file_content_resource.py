@@ -1,14 +1,17 @@
 from typing import Optional, Type, Any
 import sys
 
+# STRIP
 from PyQt6.QtWidgets import QLabel, QPushButton, QHBoxLayout, QFileDialog
 
-from RecoResources import Resource, ResourceInput, ResourceInputWidget
-from RecoResources.basic_resources import ValuedResource
+from RecoResources import Resource
+
+# STRIP IMPORTS
+from RecoResources import ResourceInput, ResourceInputWidget
 import workspace
-from pathlib import Path
 
 
+# STRIP CLASS
 class FileLoadedResourceInput(ResourceInputWidget):
     def __init__(self, refclass, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -92,20 +95,25 @@ class StringWrapper(FileContentWrapper):
         return self.value
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class FileLoadedResource(Resource,ResourceInput):
+    # STRIP
     InputWidget = FileLoadedResourceInput
     Workspace:Optional[str] = None
     DialogCaption = "Open file"
     Filter = "Any (*.*)"
     BinaryMode = False
+    # END
     WrapperClass:Type[FileContentWrapper] = StringWrapper
-
-    @classmethod
-    def create_widget(cls,*args,**kwargs):
-        return cls.InputWidget(cls)
 
     def __init__(self,value):
         self.value = value
+
+    # STRIP
+    @classmethod
+    def create_widget(cls,*args,**kwargs):
+        return cls.InputWidget(cls)
+    # END
 
     @classmethod
     def from_str(cls,s):
@@ -131,6 +139,7 @@ class FileLoadedResource(Resource,ResourceInput):
             return None
         return self.value.unwrap()
 
+    # STRIP
     @classmethod
     def ask_filename(cls)->Optional[str]:
         kwargs = dict(caption=cls.DialogCaption,filter=cls.Filter)
@@ -152,3 +161,5 @@ class FileLoadedResource(Resource,ResourceInput):
             with open(asked, mode) as fp:
                 return cls.from_str(fp.read())
         return None
+    # END
+

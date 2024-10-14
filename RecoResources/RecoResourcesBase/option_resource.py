@@ -1,11 +1,12 @@
-from typing import Optional, Dict, List, Any
+from typing import Optional, Any
 
+# STRIP IMPORTS
 from PyQt6.QtWidgets import QVBoxLayout, QLabel, QFrame, QCheckBox, QWidget
+from RecoResources import ResourceInput, ResourceInputWidget, ResourceOutput
 
-from RecoResources import Resource, ResourceInput, ResourceInputWidget, ResourceOutput
-from RecoResources.strict_functions import StrictReturnFunction
+from RecoResources.RecoResourcesCore import Resource
 
-
+# STRIP CLASS
 class OptionResourceInput(ResourceInputWidget):
     def __init__(self,reftype,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -61,8 +62,11 @@ class OptionResourceInput(ResourceInputWidget):
             self._selector.setChecked(False)
         self.on_toggle()
 
+
+# STRIP SUPERCLASSES EXCEPT Resource
 class OptionResource(Resource,ResourceInput, ResourceOutput):
     OptionType:Resource
+    # STRIP
     InputWidget = OptionResourceInput
 
     def __init__(self, value:Optional[Any]):
@@ -95,12 +99,13 @@ class OptionResource(Resource,ResourceInput, ResourceOutput):
             print("Opt DESER RES",unpacked)
             return cls(unpacked)
 
+    def is_some(self):
+        return self.value is not None
+
+    # STRIP
     @classmethod
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(cls,*args,**kwargs)
-
-    def is_some(self):
-        return self.value is not None
 
     def show_data(self, label:str) ->QWidget:
         widget = QWidget()
@@ -119,6 +124,7 @@ class OptionResource(Resource,ResourceInput, ResourceOutput):
         else:
             flayout.addWidget(QLabel("None"))
         return widget
+    # END
 
     def unwrap(self):
         if self.value is None:

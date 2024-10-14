@@ -1,7 +1,6 @@
-import copy
 import os.path
 import traceback
-from multiprocessing import Process, Queue, Pipe
+from multiprocessing import Process, Pipe
 from typing import Optional, Type
 import shutil
 import inspect
@@ -11,30 +10,23 @@ import gc
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QWidget, QMainWindow, QPushButton, QMenu, QTabWidget, QHBoxLayout, QScrollArea, QVBoxLayout
 from PyQt6.QtWidgets import QMessageBox
-from PyQt6.QtCore import QSize, QRunnable, pyqtSlot, pyqtSignal, QObject, QThreadPool, QThread, QTimer
-from RecoResources import ResourceForm, ResourceDisplay, ResourceStorage, ResourceRequest, ScriptResource, Resource
+from PyQt6.QtCore import QTimer
+from RecoResources import ResourceForm, ResourceDisplay, ResourceRequest,  ScriptResource
+from RecoResources.RecoResourcesCore import Resource, ResourceStorage
 from reconstruction_model import ReconsructionModel
 from RecoResources import DisplayList
 from button_list import ButtonPanel
 import workspace
 
 from scene import Drawer
+from reco_resources_bundle import RecoResourcesBundle, STOCK_COMMONS_SRCDIR, SCRIPT_KEY, STOCK_SRCDIR
+from export import Exporter
 
-import matplotlib, sys
+import matplotlib
+
 matplotlib.use('Qt5Agg')
 
-SCRIPT_KEY = "SCRIPT"
-BASEDIR = os.path.dirname(os.path.realpath("__file__"))
-STOCK_SRCDIR = os.path.join(BASEDIR,"stock_models")
-STOCK_COMMONS_SRCDIR = os.path.join(BASEDIR,"stock_commons")
 
-class ActionWrapper(object):
-    def __init__(self, callable, resources_provider):
-        self.callable = callable
-        self.resources_provider = resources_provider
-
-    def __call__(self, *args, **kwargs):
-        self.callable(self.resources_provider.resource_storage,*args,**kwargs)
 
 class PostprocessedActionWrapper(object):
     def __init__(self, action, event_callback):
@@ -46,130 +38,6 @@ class PostprocessedActionWrapper(object):
         self.event_callback()
         return res
 
-class RecoResourcesBundle(object):
-    def __init__(self,resource_storage:ResourceStorage,request:Optional[ResourceRequest],runner:Optional[Type[ReconsructionModel]]=None, display_list:Optional[DisplayList]=None):
-        self.resource_storage = resource_storage
-        self.request = request
-        self.runner = runner
-        self.display_list = display_list
-
-    def __getstate__(self):
-        return self.serialize()
-
-    def __setstate__(self, state):
-        newstate = self.deserialize(state)
-        if newstate is None:
-            raise RuntimeError("Cannot deserialize reco resources")
-        self.__dict = newstate.__dict__
-
-    @staticmethod
-    def default():
-        return RecoResourcesBundle(ResourceStorage(), None)
-
-    def sync_outputs(self, outputs:ResourceDisplay):
-        if self.runner is None:
-            base = dict()
-        else:
-            base = self.runner().AdditionalLabels.copy()
-            #print("RUNNER BASE",base,self.runner,self.runner.AdditionalLabels,self.runner.RequestedResources.labels())
-
-        if self.request is not None:
-            #print(self.request.labels())
-            base.update(self.request.labels())
-            #print("LABELS",base)
-        outputs.show_resources(self.resource_storage, base, allow_list=self.display_list)
-
-    def sync_inputs(self, inputs:ResourceForm):
-        inputs.populate_resources(self.request)
-
-    @staticmethod
-    def open_new_model():
-        item = RecoResourcesBundle.default()
-        success = item.update_script()
-        #print("success:",success)
-        return item, success
-
-    def update_script(self):
-        script = ScriptResource.try_load()
-        #print("SCRIPT",script)
-        if script is None:
-            return False
-        self._load_script(script)
-        return True
-
-    def _load_script(self,script):
-
-        # storage = self.resource_storage
-        globs = {
-            "__builtins__": __builtins__
-        }
-        script.run_script(globs)
-        for k in globs.keys():
-            v = globs[k]
-            if inspect.isclass(v) and (v is not ReconsructionModel) and issubclass(v, ReconsructionModel):
-                print("Found model", v.__name__)
-                request = v.RequestedResources
-                if self.request is None or request.is_compatible_with(self.request):
-                    print("Script set")
-                    #self.resource_storage = storage
-                    self.request = request
-                    self.display_list = v.DisplayList
-                    self.runner = v
-                    self.resource_storage.set_resource(SCRIPT_KEY, script)
-                    Resource.index_subclasses(True)
-                    self.resource_storage.try_load_partial_resources()
-                    gc.collect(0)
-
-    def run_model(self):
-        if self.runner is None:
-            return
-        self.runner.calculate(self.resource_storage)
-
-    def get_actions(self):
-        if self.runner is None:
-            return dict()
-        actions = self.runner.get_actions()
-        for k in actions.keys():
-            label = actions[k][0]
-            action0 = actions[k][1]
-            # def action(*args):
-            #     return action0(self.resource_storage)
-            print("Got action",k, label,action0)
-            action = ActionWrapper(action0,self)
-            actions[k] = label, action
-        return actions
-
-    def save(self,path):
-        resources = self.resource_storage.serialize()
-        with open(path,"w") as fp:
-            json.dump(resources,fp)
-
-    def serialize(self):
-        return self.resource_storage.serialize()
-
-
-    @staticmethod
-    def from_resources(resources:ResourceStorage):
-        if not resources.has_resource(SCRIPT_KEY):
-            return
-        script = resources.get_resource(SCRIPT_KEY)
-        res = RecoResourcesBundle.default()
-        res.resource_storage = resources
-        res._load_script(script)
-        return res
-
-    @staticmethod
-    def deserialize(data):
-        resources = ResourceStorage.deserialize(data)
-        return RecoResourcesBundle.from_resources(resources)
-
-
-    @staticmethod
-    def open(path):
-        with open(path,"r") as fp:
-            data = json.load(fp)
-        resources = ResourceStorage.deserialize(data)
-        return RecoResourcesBundle.from_resources(resources)
 
 
 def add_action(parent,menu,name,func,shortcut=None):
@@ -181,18 +49,18 @@ def add_action(parent,menu,name,func,shortcut=None):
 
 
 def add_modules_dir(s):
-    sys.path.insert(0,s)
-    for file in os.listdir(s):
-        if file.endswith(".py"):
-            modname = file[:-3]
-            try:
-                mod = __import__(modname)
-                print(f"Loading {modname} OK")
-                print(dir(mod))
-            except:
-                print(f"Loading {modname} failed")
+    #sys.path.insert(0,s)
+    # for file in os.listdir(s):
+    #     if file.endswith(".py"):
+    #         modname = file[:-3]
+    #         try:
+    #             mod = __import__(modname,{"__builtins__":__builtins__},dict())
+    #             print(f"Loading {modname} OK")
+    #             print(dir(mod))
+    #         except:
+    #             print(f"Loading {modname} failed")
     Resource.index_subclasses(True)
-
+    gc.collect()
 
 class Worker(Process):
     def __init__(self, state, tx):
@@ -260,7 +128,10 @@ class PADAMOReco(QMainWindow):
         add_action(self,file_menu,"New project",self.on_bootstrap_model, shortcut="Ctrl+N")
         add_action(self,file_menu,"Open project",self.on_open_model, shortcut="Ctrl+O")
         add_action(self,file_menu,"Save project",self.on_save_model, shortcut="Ctrl+S")
+        add_action(self,file_menu,"Export project",self.on_export, shortcut="Ctrl+E")
+        file_menu.addSeparator()
         add_action(self,file_menu,"Update script",self.on_update_script)
+        add_action(self,file_menu,"Recover data",self.on_donor_model)
         file_menu.addSeparator()
         add_action(self,file_menu,"Copy models to workspace",self.on_copy_models)
 
@@ -273,8 +144,6 @@ class PADAMOReco(QMainWindow):
         widget = QWidget()
         main_layout = QHBoxLayout()
         widget.setLayout(main_layout)
-
-
 
         tabs = QTabWidget()
         main_layout.addWidget(tabs)
@@ -321,10 +190,12 @@ class PADAMOReco(QMainWindow):
             print("Workspace is set. Using workspace commons")
             ws = workspace.Workspace("reco_commons")
             ws.ensure_directory()
-            add_modules_dir(ws.get_tgt_dir())
+            # add_modules_dir()
+            self.additional_modules = ws.get_tgt_dir()
         else:
             print("No workspace is set. Using local commons")
-            add_modules_dir(STOCK_COMMONS_SRCDIR)
+            # add_modules_dir(STOCK_COMMONS_SRCDIR)
+            self.additional_modules = STOCK_COMMONS_SRCDIR
         self.plotter.replot_hook = self.replot_hook
         self.plotter.event_sync_hook = self.event_sync_hook
 
@@ -418,6 +289,26 @@ class PADAMOReco(QMainWindow):
             self.plotter.clear_zooms()
             self.on_plotter_notify()
 
+    def on_donor_model(self):
+        if self.resources.resource_storage.has_resource(SCRIPT_KEY):
+            try:
+                path = \
+                workspace.Workspace("reco-projects").get_open_file_name(caption="Open saved reconstruction project",
+                                                                        filter="Model data (*.json)")[0]
+                if not path:
+                    return
+                print("Donor:", path)
+                self.resources.update_except_script(path)
+                self._sync_inputs()
+                self._push_resources()
+                self._sync_outputs()
+                self._refresh_actions()
+                self.plotter.clear_zooms()
+                self.on_plotter_notify()
+            except:
+                print(traceback.format_exc())
+
+
     def on_save_model(self):
         path = workspace.Workspace("reco-projects").get_save_file_name(caption="Save reconstruction project",
                                                                          filter="Model data (*.json)")[0]
@@ -466,8 +357,6 @@ class PADAMOReco(QMainWindow):
                     print("Reco OK")
                     QMessageBox.information(self,"Reco status", "Reco finished")
 
-
-
     def update_outputs(self):
         self.resources.sync_outputs(self.output_tab)
         self.on_plotter_notify()
@@ -489,3 +378,10 @@ class PADAMOReco(QMainWindow):
     def on_forget_zooms(self):
         self.plotter.clear_zooms()
         self.plotter.replot()
+
+    def on_export(self):
+        export_path = workspace.Workspace("export").get_existing_directory()
+        if not export_path:
+            return
+        dialog = Exporter(self.resources.resource_storage,export_path)
+        dialog.exec()

@@ -1,9 +1,13 @@
-from typing import Dict, Type
+from typing import Dict
 
+# STRIP IMPORTS
 from PyQt6.QtWidgets import QLabel, QLineEdit, QHBoxLayout, QCheckBox, QWidget, QComboBox
-from RecoResources import ResourceInput, Resource, ResourceInputWidget, ResourceOutput
 from RecoResources.strict_functions import Default
+from RecoResources import ResourceInput, ResourceInputWidget, ResourceOutput
 
+from RecoResources import Resource
+
+# STRIP CLASS
 class FocusOutTriggeringLineEdit(QLineEdit):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -15,7 +19,7 @@ class FocusOutTriggeringLineEdit(QLineEdit):
             self.focus_out_callback()
 
 
-
+# STRIP CLASS
 class ValuedResourceInput(ResourceInputWidget):
     BaseType = None
     DefaultValue = None
@@ -72,6 +76,7 @@ class ValuedResourceInput(ResourceInputWidget):
         self._label.setText(title)
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class ValuedResource(Resource,ResourceInput, ResourceOutput):
     BaseType = None
 
@@ -88,6 +93,7 @@ class ValuedResource(Resource,ResourceInput, ResourceOutput):
     def deserialize(cls,data):
         return cls(data)
 
+    # STRIP
     def show_data(self, label:str) ->QWidget:
         widget = QWidget()
         layout = QHBoxLayout()
@@ -99,6 +105,7 @@ class ValuedResource(Resource,ResourceInput, ResourceOutput):
 
         layout.addWidget(non_editable_line_edit)
         return widget
+    # END
 
     def unwrap(self):
         return self.value
@@ -119,32 +126,38 @@ class ValuedResource(Resource,ResourceInput, ResourceOutput):
         """
         return True
 
+    # STRIP
     @classmethod
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(cls, *args,**kwargs)
+    # END
 
 
+# STRIP CLASS
 class IntegerResourceInput(ValuedResourceInput):
     BaseType = int
     DefaultValue = 0
 
 
 class IntegerResource(ValuedResource):
-    InputWidget = IntegerResourceInput
     BaseType = int
+    # STRIP
+    InputWidget = IntegerResourceInput
 
 
-
+# STRIP CLASS
 class FloatResourceInput(ValuedResourceInput):
     BaseType = float
     DefaultValue = 0.0
 
 
 class FloatResource(ValuedResource):
-    InputWidget = FloatResourceInput
     BaseType = float
+    # STRIP
+    InputWidget = FloatResourceInput
 
 
+# STRIP CLASS
 class StringResourceInput(ValuedResourceInput):
     BaseType = str
     DefaultValue = ""
@@ -152,8 +165,11 @@ class StringResourceInput(ValuedResourceInput):
 
 class StringResource(ValuedResource):
     BaseType = str
+    # STRIP
     InputWidget = StringResourceInput
 
+
+# STRIP CLASS
 class BooleanResourceInput(ResourceInputWidget):
 
     def __init__(self,bound_type,*args,**kwargs):
@@ -179,8 +195,9 @@ class BooleanResourceInput(ResourceInputWidget):
 
 
 class BooleanResource(ValuedResource):
-    InputWidget = BooleanResourceInput
     BaseType = bool
+    # STRIP
+    InputWidget = BooleanResourceInput
 
 
 BASE_MAPPING = {
@@ -203,6 +220,7 @@ def remap_basic_types(t):
     return t
 
 
+# STRIP CLASS
 class BlankResourceInput(ResourceInputWidget):
 
     def __init__(self,bound_type,*args,**kwargs):
@@ -226,8 +244,10 @@ class BlankResourceInput(ResourceInputWidget):
         return self.bound_type()
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class BlankResource(Resource, ResourceInput, ResourceOutput, Default):
     Label: str = "FIXME"
+    # STRIP
     InputWidget = BlankResourceInput
 
     def __init__(self):
@@ -241,6 +261,7 @@ class BlankResource(Resource, ResourceInput, ResourceOutput, Default):
         print("Deserialize called")
         return cls()
 
+    # STRIP
     @classmethod
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(cls,*args,**kwargs)
@@ -253,15 +274,17 @@ class BlankResource(Resource, ResourceInput, ResourceOutput, Default):
         layout.addWidget(QLabel(self.Label))
         return res
 
+    @classmethod
+    def default(cls):
+        return cls()
+
+    # END
+
     def __repr__(self):
         return f"{type(self).__name__}=({self.Label})"
 
     def unwrap(self):
         return None
-
-    @classmethod
-    def default(cls):
-        return cls()
 
     @classmethod
     def try_from(cls,x):
@@ -270,7 +293,7 @@ class BlankResource(Resource, ResourceInput, ResourceOutput, Default):
         return None
 
 
-
+# STRIP CLASS
 class ChoiceInput(ResourceInputWidget):
     def __init__(self,ref,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -298,13 +321,11 @@ class ChoiceInput(ResourceInputWidget):
         return self.ref(self.keys[self._combo.currentIndex()])
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class ChoiceResource(Resource, Default, ResourceInput, ResourceOutput):
     Choices:Dict[str,str]
+    # STRIP
     InputWidget = ChoiceInput
-
-    @classmethod
-    def create_widget(cls,*args,**kwargs):
-        return cls.InputWidget(cls)
 
     def __init__(self,value):
         if len(self.Choices.keys()) == 0:
@@ -313,11 +334,28 @@ class ChoiceResource(Resource, Default, ResourceInput, ResourceOutput):
             raise ValueError(f"Value {value} is not a valid choice")
         self.value = value
 
+    #STRIP
+    @classmethod
+    def create_widget(cls,*args,**kwargs):
+        return cls.InputWidget(cls)
+
+
     @classmethod
     def default(cls):
         if len(cls.Choices.keys()) == 0:
             raise TypeError(f"Class {cls} has no choices")
         return cls(list(cls.Choices.keys())[0])
+
+
+    def show_data(self, label:str) ->QWidget:
+        res = QWidget()
+        layout = QHBoxLayout()
+        res.setLayout(layout)
+        layout.addWidget(QLabel(label))
+        layout.addWidget(QLabel(self.Choices[self.value]))
+        return res
+
+    # END
 
     def serialize(self):
         return self.value
@@ -329,10 +367,3 @@ class ChoiceResource(Resource, Default, ResourceInput, ResourceOutput):
     def unwrap(self):
         return self.value
 
-    def show_data(self, label:str) ->QWidget:
-        res = QWidget()
-        layout = QHBoxLayout()
-        res.setLayout(layout)
-        layout.addWidget(QLabel(label))
-        layout.addWidget(QLabel(self.Choices[self.value]))
-        return res

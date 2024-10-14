@@ -7,9 +7,6 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 from matplotlib.figure import Figure
 
 
-from RecoResources import ResourceStorage
-
-
 SCRIPT_KEY = "SCRIPT"
 class Drawer(QWidget):
     def __init__(self,*args,**kwargs):

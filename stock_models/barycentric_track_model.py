@@ -1,12 +1,15 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit, minimize
+from scipy.optimize import curve_fit
 
-from reco_prelude import ResourceStorage, ReconsructionModel, ResourceRequest, LabelledAction
-from reco_prelude import HDF5Resource, DetectorResource, Scene
+# from reco_prelude import ResourceStorage, ReconsructionModel, ResourceRequest, LabelledAction
+# from reco_prelude import HDF5Resource, DetectorResource, Scene
 
+from reconstruction_model import Scene, ReconstructionModel, LabelledAction
+from RecoResources.RecoResourcesCore import ResourceStorage
+from RecoResources import ResourceRequest
 
-
+# INCLUDE detector_resource
 
 class DetectorScene(Scene):
     SceneName = "Detector"
@@ -129,13 +132,13 @@ def fit_pixel(xdata,ydata):
     perr = np.sqrt(np.diag(pcov))
     return popt,perr
 
-class BarycentricTrackModel(ReconsructionModel):
+class BarycentricTrackModel(ReconstructionModel):
     '''
     A fairly simple track reconstruction method.
     '''
     RequestedResources = ResourceRequest({
-        "reco_data": dict(display_name="Reconstruction data", type_=HDF5Resource),
-        "detector": dict(display_name="Detector", type_=DetectorResource),
+        "reco_data": dict(display_name="Reconstruction data", type_="HDF5Resource"),
+        "detector": dict(display_name="Detector", type_="DetectorResource"),
         "signal_threshold": dict(display_name="Signal threshold", default_value=3.0),
         "duration_threshold":dict(display_name="Duration threshold", default_value=0.0),
         "use_robust_linreg":dict(display_name="Robust linear regression", default_value=False),

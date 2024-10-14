@@ -1,7 +1,10 @@
-from reco_prelude import ResourceStorage,ReconsructionModel,ResourceRequest, LabelledAction
+# from reco_prelude import ResourceStorage,ReconsructionModel,ResourceRequest, LabelledAction
 
+from RecoResources.RecoResourcesCore import ResourceStorage
+from RecoResources import ResourceRequest
+from reconstruction_model import ReconstructionModel, LabelledAction
 
-class HelloModel(ReconsructionModel):
+class HelloModel(ReconstructionModel):
     '''
     This is a test model
     Not yet probabilistic

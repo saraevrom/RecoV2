@@ -1,15 +1,17 @@
 import inspect
 
-from typing import Optional, Dict, List, Union, Type
+from typing import Optional, List, Union, Type
 
+# STRIP
 from PyQt6.QtWidgets import QVBoxLayout, QLabel, QFrame, QComboBox, QWidget
 
-from RecoResources import Resource, ResourceInput, ResourceInputWidget, ResourceOutput
+from RecoResources import Resource
+
+# STRIP IMPORTS
+from RecoResources import ResourceInput, ResourceInputWidget, ResourceOutput
 from RecoResources.strict_functions import StrictReturnFunction, Default
 
-from collections import OrderedDict
-
-
+# STRIP CLASS
 class ResourceVariant(object):
     def __init__(self, default_value_creator:Union[StrictReturnFunction,Type[Default]], display_name:Optional[str]=None):
         if inspect.isclass(default_value_creator) and issubclass(default_value_creator,Default):
@@ -18,15 +20,15 @@ class ResourceVariant(object):
         self.display_name = display_name
 
     def get_default_value_type(self):
-        from RecoResources.basic_resources import remap_basic_types
+        from .basic_resources import remap_basic_types
         return remap_basic_types(self.default_value_creator.return_type)
 
     def create_default(self):
-        from RecoResources.basic_resources import remap_basic_values
+        from .basic_resources import remap_basic_values
         return remap_basic_values(self.default_value_creator())
 
     def create_widget(self,*args,**kwargs):
-        from RecoResources.basic_resources import remap_basic_values
+        from .basic_resources import remap_basic_values
         return remap_basic_values(self.default_value_creator()).create_widget(*args,**kwargs)
 
     def get_displayname(self,key):
@@ -35,7 +37,7 @@ class ResourceVariant(object):
         else:
             return self.display_name
 
-
+# STRIP
 class AlternativeResourceInput(ResourceInputWidget):
     def __init__(self,variants:List[ResourceVariant],reference_alter,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -48,6 +50,7 @@ class AlternativeResourceInput(ResourceInputWidget):
         self.subfields = [None]*len(variants)
         self.variants = variants
         self.variant_types = [v.get_default_value_type() for v in variants]
+        self.variant_ids = [v.identifier() for v in self.variant_types]
 
         self._selector = QComboBox()
         main_layout.addWidget(self._selector)
@@ -95,15 +98,19 @@ class AlternativeResourceInput(ResourceInputWidget):
 
     def set_resource(self,resource):
         #print("ALTER SET", resource)
-        index = self.variant_types.index(type(resource.value))
+        index = self.variant_ids.index(type(resource.value).identifier())
         self.select_variant(index)
         self.subfields[index].set_resource(resource.value)
 
     def set_title(self,title):
         self._label.setVisible(True)
         self._label.setText(title)
+# REPLACE
+# from RecoResources.dummy import DummyResourceVariant as ResourceVariant
+# END
 
 
+# STRIP
 def validate_variants(variants:List[ResourceVariant]):
     typeset = set()
     for variant in variants:
@@ -111,11 +118,17 @@ def validate_variants(variants:List[ResourceVariant]):
             raise TypeError("variant types must be unique")
         typeset.add(variant.default_value_creator.return_type)
 
+# END
 
-class AlternatingResource(Resource,ResourceInput, ResourceOutput, Default):
+
+# STRIP SUPERCLASSES EXCEPT Resource
+class AlternatingResource(Resource, ResourceInput, ResourceOutput, Default):
     Variants: List[ResourceVariant]
+
+    # STRIP
     InputWidget = AlternativeResourceInput
 
+    # STRIP
     def __init__(self,value:Optional[Resource]=None):
         validate_variants(self.Variants)
         if value is None:
@@ -130,10 +143,16 @@ class AlternatingResource(Resource,ResourceInput, ResourceOutput, Default):
             raise ValueError(f"Choice variant type is invalid for variant set")
 
         self.value = value
+    # REPLACE
+#     def __init__(self,value:Optional[Resource]=None):
+#         self.value = value
+    # END
 
+    # STRIP
     @classmethod
     def default(cls):
         return cls()
+    # END
 
     def __repr__(self):
         return f"{type(self).__name__}({self.value})"
@@ -147,6 +166,7 @@ class AlternatingResource(Resource,ResourceInput, ResourceOutput, Default):
         #print("ALT deser", data, unpacked)
         return cls(unpacked)
 
+    # STRIP
     @classmethod
     def create_widget(cls,*args,**kwargs):
         return cls.InputWidget(cls.Variants,cls,*args,**kwargs)
@@ -171,6 +191,7 @@ class AlternatingResource(Resource,ResourceInput, ResourceOutput, Default):
         type(self.value)
         flayout.addWidget(self.value.show_data(f"Chosen variant: {display}"))
         return widget
+    # END
 
     def unwrap(self):
         return self.value.unwrap()

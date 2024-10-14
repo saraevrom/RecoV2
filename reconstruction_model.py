@@ -2,7 +2,11 @@ from typing import List, Optional, Type, Union
 
 import matplotlib.pyplot as plt
 
-from RecoResources import ResourceRequest, ResourceStorage, ResourceDisplay, DisplayList
+# STRIP
+from RecoResources import DisplayList
+
+from RecoResources import ResourceRequest
+from RecoResources.RecoResourcesCore import ResourceStorage
 
 
 class ExposedClassMethod(object):

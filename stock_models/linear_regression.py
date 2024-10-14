@@ -2,14 +2,15 @@ import numpy as np
 import pymc as pm
 from matplotlib import pyplot as plt
 
-from RecoResources import ResourceStorage
-from reco_prelude import ResourceRequest, ReconsructionModel, HDF5Resource
+from RecoResources.RecoResourcesCore import ResourceStorage
+from RecoResources import ResourceRequest
+from reconstruction_model import ReconsructionModel
 
 
 class LinearRegression(ReconsructionModel):
     RequestedResources = ResourceRequest({
-        "x": dict(display_name="X", type_=HDF5Resource),
-        "y": dict(display_name="Y", type_=HDF5Resource),
+        "x": dict(display_name="X", type_="HDF5Resource"),
+        "y": dict(display_name="Y", type_="HDF5Resource"),
     })
     Scenes = ["L","S","LS"]
 

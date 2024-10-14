@@ -5,13 +5,16 @@ import pymc as pm
 import pytensor.tensor as pt
 from matplotlib import pyplot as plt
 
-from RecoResources import ResourceStorage, StrictFunction, Resource, DisplayList
-from reco_prelude import ResourceRequest, ReconsructionModel, HDF5Resource, DetectorResource, AlternatingResource
-from reco_prelude import ResourceVariant, BlankResource, CombineResource, DistributionResource, template_uniform
-from reco_prelude import Scene
-from RecoResources.prior_resource import template_exponent
-from track_resources import PyMCSampleArgsResource, PositionPriorAlternate
-from lc_resources import MainLC
+from RecoResources.RecoResourcesCore import Resource, ResourceStorage
+
+from reconstruction_model import DisplayList, ReconsructionModel,  Scene
+from RecoResources import ResourceRequest
+from RecoResources.RecoResourcesShipped.prior_resource import template_uniform, template_exponent
+
+# INCLUDE lc_resources
+# INCLUDE pymc_sampling
+# INCLUDE track_resources
+# INCLUDE detector_resource
 
 
 def estimate(trace,key):
@@ -105,7 +108,7 @@ class PlotsScene(Scene):
         axes.plot(xs, lc, color="black")
         if trace is not None and resources.has_resource("lc_conf"):
             lc_params = resources.get("lc_conf")
-            lc_conf: MainLC = Resource.unpack(json.loads(lc_params))
+            lc_conf = Resource.unpack(json.loads(lc_params))
             x_lc = np.arange(resources.get("k_start"), resources.get("k_end"), 0.1)
             y_lc = lc_conf.get_lc(trace, x_lc - resources.get("k0"))
             axes.plot(x_lc, y_lc, "--", color="red")
@@ -155,7 +158,7 @@ class PlotsAltScene(Scene):
 
         if trace is not None and resources.has_resource("lc_conf"):
             lc_params = resources.get("lc_conf")
-            lc_conf: MainLC = Resource.unpack(json.loads(lc_params))
+            lc_conf = Resource.unpack(json.loads(lc_params))
             x_lc = np.arange(resources.get("k_start"), resources.get("k_end"), 0.1)
             y_lc = lc_conf.get_lc(trace, x_lc - resources.get("k0"))
             axes.plot(x_lc, y_lc, "--", color="red")
@@ -174,17 +177,17 @@ class LinearTrackModel(ReconsructionModel):
         "k0": dict(display_name="Zero frame", default_value=0.0),
         "ma_filter": dict(display_name="MA filter", default_value=1, category="Display"),
         "active_window": dict(display_name="Active signal window", default_value=10, category="Display"),
-        "pymc_sampling": dict(display_name="PyMC arguments", type_=PyMCSampleArgsResource),
-        "detector": dict(display_name="Detector", type_=DetectorResource),
-        "reco_data": dict(display_name="Reconstruction data", type_=HDF5Resource),
-        "reco_time": dict(display_name="Reconstruction time", type_=HDF5Resource),
-        "ref_position": dict(display_name="(X0,Y0) [mm]", type_=PositionPriorAlternate,category="Priors"),
+        "pymc_sampling": dict(display_name="PyMC arguments", type_="PyMCSampleArgsResource"),
+        "detector": dict(display_name="Detector", type_="DetectorResource"),
+        "reco_data": dict(display_name="Reconstruction data", type_="HDF5Resource"),
+        "reco_time": dict(display_name="Reconstruction time", type_="HDF5Resource"),
+        "ref_position": dict(display_name="(X0,Y0) [mm]", type_="PositionPriorAlternate",category="Priors"),
         "u0": dict(display_name="U0 [mm/fr]", default_value=template_uniform(0.01,2.0),category="Priors"),
         "phi0": dict(display_name="Phi0 [deg]", default_value=template_uniform(0.0,360.0),category="Priors"),
         "sigma_psf": dict(display_name="Sigma PSF [mm]", default_value=template_exponent(0.5,False),
                           category="Priors"),
         "sigma": dict(display_name="Sigma 0", default_value=template_exponent(1.0,False),category="Priors"),
-        "lc":dict(display_name="Light curve", type_=MainLC,category="Priors"),
+        "lc":dict(display_name="Light curve", type_="MainLC",category="Priors"),
         "sigma_individual":dict(display_name="Individual sigma", default_value=False),
 
         "latitude": dict(display_name="Latitude [°]", default_value=0.0, category="Display"),

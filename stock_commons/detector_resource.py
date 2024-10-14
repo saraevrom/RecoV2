@@ -1,18 +1,19 @@
 import json
 
 import numpy as np
+
+# STRIP IMPORTS
 from PyQt6.QtWidgets import QVBoxLayout, QDialog, QWidget, QHBoxLayout, QPushButton
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+from RecoResources import FileLoadedResourceInput
 
-from RecoResources.file_content_resource import FileLoadedResource, FileLoadedResourceInput, FileContentWrapper
+from RecoResources import FileContentWrapper, FileLoadedResource
 from padamo_rs_detector_parser import PadamoDetector
 
 
-
-
-
+# STRIP CLASS
 class DetectorPixelSelector(QDialog):
     def __init__(self,detector:PadamoDetector,triggerable,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -119,6 +120,7 @@ class DetectorWrapper(FileContentWrapper):
         return self.value
 
 
+# STRIP CLASS
 class DetectorResourceInput(FileLoadedResourceInput):
     def __init__(self, refclass, *args, **kwargs):
         super().__init__(refclass,*args,**kwargs)
@@ -132,12 +134,13 @@ class DetectorResourceInput(FileLoadedResourceInput):
             dialog.exec()
 
 
-
 class DetectorResource(FileLoadedResource):
+    # STRIP
     InputWidget = DetectorResourceInput
     Workspace = "detectors"
     DialogCaption = "Open PADAMO-RS detector"
     Filter = "Detector data (*.json)"
+    # END
     WrapperClass = DetectorWrapper
 
     def get_detector(self):

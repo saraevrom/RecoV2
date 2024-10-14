@@ -6,20 +6,20 @@ import pymc as pm
 import pytensor.tensor as pt
 from matplotlib import pyplot as plt
 
-from RecoResources import ResourceStorage
-from padamo_rs_detector_parser import PadamoDetector
-from reco_prelude import ReconsructionModel, ResourceRequest, HDF5Resource, TimeResource, DetectorResource
-from reco_prelude import template_normal, NumpyArrayResource, Scene, template_exponent, template_halfnormal
-from RecoResources.prior_resource import ConstantMaker
+from RecoResources.RecoResourcesCore import ResourceStorage
+from RecoResources import ResourceRequest
+from reconstruction_model import ReconstructionModel, Scene, LabelledAction
+from stock_commons.detector_resource import PadamoDetector
+from RecoResources.RecoResourcesShipped.prior_resource import ConstantMaker, template_exponent
+from RecoResources.RecoResourcesShipped.prior_resource import template_normal, template_halfnormal
 from transform import Transform, unixtime_to_era, Quaternion, Vector3, TransformBuilder, observatory_transform
-from transform import ecef_align, projection_matrix, simple_projection_matrix, Vector4
+from transform import projection_matrix
 from stars import StarList
-from star_pin import PinnedStars
-from orientation import OrientationPriorResource
-from track_resources import PyMCSampleArgsResource
 from transform import Matrix
-from reco_prelude import LabelledAction
-from matplotlib.patches import  Circle
+
+# INCLUDE orientation
+# INCLUDE star_pin
+# INCLUDE detector_resource
 
 # WORK IN PROGRESS
 
@@ -127,6 +127,7 @@ class SkyScene(Scene):
 
     @classmethod
     def draw_scene(cls, resources: ResourceStorage, fig: plt.Figure, axes: plt.Axes):
+        from matplotlib.patches import Circle
         dat = scene_3d_view(resources)
         if dat is None:
             return
@@ -323,13 +324,13 @@ class DetectorScene(Scene):
 
 
 
-class StellarModel(ReconsructionModel):
+class StellarModel(ReconstructionModel):
     RequestedResources = ResourceRequest({
-        "detector": dict(display_name="Detector", type_=DetectorResource),
-        "signal_data": dict(display_name="Signal data", type_=HDF5Resource),
-        "time_data": dict(display_name="Time data", type_=HDF5Resource),
-        "pymc_sampling": dict(display_name="PyMC arguments", type_=PyMCSampleArgsResource),
-        "time_probe": dict(display_name="Plot time", type_=TimeResource, category="Display"),
+        "detector": dict(display_name="Detector", type_="DetectorResource"),
+        "signal_data": dict(display_name="Signal data", type_="HDF5Resource"),
+        "time_data": dict(display_name="Time data", type_="HDF5Resource"),
+        "pymc_sampling": dict(display_name="PyMC arguments", type_="PyMCSampleArgsResource"),
+        "time_probe": dict(display_name="Plot time", type_="TimeResource", category="Display"),
         "frame_probe": dict(display_name="Plot frame", default_value=0, category="Display"),
         "show_all_pixels": dict(display_name="Show all pixels", default_value=True, category="Display"),
         "latitude": dict(display_name="Latitude [°]", default_value=0.0),
@@ -340,7 +341,7 @@ class StellarModel(ReconsructionModel):
                           category="Priors"),
         "sigma": dict(display_name="Sigma [mm]", default_value=template_halfnormal(1.0,False),
                           category="Priors"),
-        "orientation": dict(display_name="Orientation", type_=OrientationPriorResource,
+        "orientation": dict(display_name="Orientation", type_="OrientationPriorResource",
                   category="Priors"),
         "f": dict(display_name="Focal distance [mm]", default_value=template_normal(150.0,1.0),
                   category="Priors"),
@@ -349,7 +350,7 @@ class StellarModel(ReconsructionModel):
         "plane_offset_y": dict(display_name="Focal plane offset Y", default_value=ConstantMaker.template(0.0),
                                category="Priors"),
         "use_cauchy":dict(display_name="Use cauchy error", default_value=True,category="Priors"),
-        "star_list": dict(display_name="Stars", type_=PinnedStars, category="Star selection")
+        "star_list": dict(display_name="Stars", type_="PinnedStars", category="Star selection")
         # "stars": dict(display_name="Stars", type_=StarListResource),
         # "pdm_width": dict(display_name="PDM width [pixels]", default_value=8),
         # "pdm_height": dict(display_name="PDM height [pixels]", default_value=8),

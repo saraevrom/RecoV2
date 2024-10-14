@@ -1,16 +1,15 @@
-from typing import Dict
-
+# STRIP IMPORT
 from PyQt6.QtGui import QDrag
 from PyQt6.QtCore import Qt, QMimeData
-from PyQt6.QtWidgets import QFrame, QWidget, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QFrame
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QFrame
+from RecoResources import ResourceInput, ResourceOutput, ResourceInputWidget
 
-from RecoResources import Resource, ResourceInput, ResourceForm, ResourceOutput, ResourceRequest, ResourceInputWidget, \
-    ResourceStorage, BlankResource
+from .basic_resources import BlankResource
 
-from RecoResources import ResourceDisplay
-from RecoResources.strict_functions import Default
+from RecoResources import Resource
 
 
+# STRIP CLASS
 class ArrayItemDragger(QLabel):
     def __init__(self, upper_container, parent=None):
         super().__init__(parent=parent, text="Drag me")
@@ -29,6 +28,7 @@ class ArrayItemDragger(QLabel):
         drag.exec(Qt.DropAction.MoveAction)
 
 
+# STRIP CLASS
 class ArrayItemWidget(QFrame):
     def __init__(self, refclass: type[ResourceInput], container, parent=None):
         super().__init__(parent=parent)
@@ -97,6 +97,7 @@ class ArrayItemWidget(QFrame):
         self._main_widget.set_changed_callback(callback)
 
 
+# STRIP CLASS
 class ArrayResourceInput(ResourceInputWidget):
     IdCounter = 0
 
@@ -179,9 +180,12 @@ class ArrayResourceInput(ResourceInputWidget):
         self.trigger_callback()
 
 
+# STRIP SUPERCLASSES EXCEPT Resource
 class ArrayResource(Resource, ResourceInput, ResourceOutput):
     InnerType: type[Resource] = BlankResource
+    # STRIP
     InputWidget = ArrayResourceInput
+
     ITEM_LABEL = "Item #{}"
 
     def __init__(self, data: list):
@@ -209,6 +213,7 @@ class ArrayResource(Resource, ResourceInput, ResourceOutput):
     def __repr__(self):
         return f"{type(self).__name__}({self.data})"
 
+    # STRIP
     @classmethod
     def create_widget(cls, *args, **kwargs):
         return cls.InputWidget(cls, *args, **kwargs)
@@ -220,6 +225,7 @@ class ArrayResource(Resource, ResourceInput, ResourceOutput):
     @classmethod
     def output_is_available(cls):
         return issubclass(cls.InnerType, ResourceOutput) and cls.InnerType.output_is_available()
+    # END
 
     def serialize(self):
         return [item.serialize() for item in self.data]
@@ -249,7 +255,7 @@ class ArrayResource(Resource, ResourceInput, ResourceOutput):
                     data.append(new_item)
                 return cls(data)
 
-
+    # STRIP
     def show_data(self, label:str) -> QWidget:
         w = QWidget()
         l = QVBoxLayout()
@@ -262,3 +268,4 @@ class ArrayResource(Resource, ResourceInput, ResourceOutput):
             if isinstance(item,ResourceOutput):
                 l.addWidget(item.show_data(self.ITEM_LABEL.format(i)))
         return w
+    # END

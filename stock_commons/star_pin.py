@@ -1,13 +1,12 @@
 import numpy as np
 
-from RecoResources import CombineResource, ResourceRequest, ArrayResource, StringResource, ResourceStorage, \
+from RecoResources import ResourceStorage
+from RecoResources import CombineResource, ResourceRequest, ArrayResource, StringResource, \
     AlternatingResource, ResourceVariant
 from RecoResources import BlankResource
-from RecoResources.prior_resource import NormalMaker
-from stars import StarList, Star
+from RecoResources.RecoResourcesShipped.prior_resource import NormalMaker
+from stars import StarList
 from stars.star_parser import parse_one_star
-import numba as nb
-
 
 
 class StarEntry(StringResource):
@@ -135,6 +134,7 @@ def deduplicate(arr:list, cmp=None):
         if alive:
             i += 1
     return arr
+
 
 class PinnedStars(ArrayResource):
     InnerType = StarPinResource

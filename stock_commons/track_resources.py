@@ -1,12 +1,9 @@
-from RecoResources import CombineResource, ResourceRequest, StrictFunction, BlankResource, ResourceVariant, \
-    AlternatingResource, DistributionResource, ChoiceResource
+from RecoResources import CombineResource, ResourceRequest, BlankResource, ResourceVariant, \
+    AlternatingResource, DistributionResource
 import pymc as pm
-from pymc_sampling import PyMCSampleArgsResource
-import numpy as np
-from transform import TransformBuilder, ecef_align, projection_matrix
 
-
-
+# Import this setting if file is not
+from RecoResources import PymcSampleAlternateResource, PyMCSampleArgsResource
 
 class PositionPrior(object):
     def get_detector_prior(self,x_name,y_name,detector):

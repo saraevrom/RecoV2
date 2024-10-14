@@ -1,15 +1,22 @@
 import numpy as np
 import pymc as pm
 import pytensor.tensor as pt
-from matplotlib.axes import Axes
 
-from reco_prelude import AlternatingResource, DistributionResource, ResourceVariant, CombineResource, ResourceRequest
-from reco_prelude import BlankResource
-from RecoResources.prior_resource import template_exponent, template_uniform
+from RecoResources import AlternatingResource, DistributionResource, CombineResource, BlankResource
+# from RecoResources.RecoResourcesShipped.prior_resource import template_exponent, template_uniform
+from RecoResources import ResourceRequest, ResourceVariant
 
+from RecoResources.RecoResourcesShipped.prior_resource import template_exponent, template_uniform
+
+
+# BlankResource = Resource.lookup_resource("BlankResource")
+# CombineResource = Resource.lookup_resource("CombineResource")
+# DistributionResource = Resource.lookup_resource("DistributionResource")
+# AlternatingResource = Resource.lookup_resource("AlternatingResource")
 
 def estimate(trace,key):
     return np.median(trace.posterior[key])
+
 
 class LCMaker(object):
     def make_lc(self, var_name,x):

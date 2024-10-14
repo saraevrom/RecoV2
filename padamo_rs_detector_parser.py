@@ -1,14 +1,16 @@
 import os.path
 from typing import Tuple
+
 import matplotlib.pyplot as plt
+
 import numpy as np
-from matplotlib import colormaps
-from matplotlib.patches import Polygon
+# from matplotlib import colormaps
+# from matplotlib.patches import Polygon
 from transform.vectors import Vector2, Vector3
 
-VIRIDIS = colormaps["viridis"]
-
+# VIRIDIS = colormaps["viridis"]
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
+
 
 def static_vars(**kwargs):
     def decorate(func):
@@ -17,6 +19,17 @@ def static_vars(**kwargs):
         return func
     return decorate
 
+
+def get_quadrature_files():
+    small_xy = os.path.join(BASE_PATH, "quadrature_xy_small.txt")
+    small_w = os.path.join(BASE_PATH, "quadrature_w_small.txt")
+    if os.path.isfile(small_xy) and os.path.isfile(small_w):
+        return small_xy,small_w
+    normal_xy = os.path.join(BASE_PATH, "quadrature_xy.txt")
+    normal_w = os.path.join(BASE_PATH, "quadrature_w.txt")
+    if os.path.isfile(normal_xy) and os.path.isfile(normal_w):
+        return normal_xy,normal_w
+    raise RuntimeError("No quadrature files were supplied")
 
 @static_vars(xs=None,ys=None,ws=None)
 def get_quadrature_rules():
@@ -112,6 +125,9 @@ class PadamoPixel(object):
         self.max_y = np.max(self.vertices[:,1])
 
     def draw_pixel(self,ax:plt.Axes,source_array:np.ndarray,min_,max_,colormap,offset,alive_matrix):
+        from matplotlib.patches import Polygon
+        # Make matplotlib optional
+
         value = float(source_array[self.index])
         normalized = (value-min_)/(max_-min_)
         if normalized < 0.0:
@@ -210,7 +226,11 @@ class PadamoDetector(object):
     def draw_blank(self,ax,alive_override=None):
         return self.draw(ax,np.zeros(self.compat_shape),alive_override=alive_override)
 
-    def draw(self,ax:plt.Axes,plot_data:np.ndarray,norm:PlotNorm=AutoscaleNorm(), colormap=VIRIDIS, offset=(0,0), alive_override=None):
+    def draw(self,ax:plt.Axes,plot_data:np.ndarray,norm:PlotNorm=AutoscaleNorm(), colormap=None, offset=(0,0), alive_override=None):
+        from matplotlib import colormaps
+        if colormap is None:
+            colormap = colormaps["viridis"]
+
         if plot_data.shape != self.compat_shape:
             raise ValueError(f"Data has incompatible shape {plot_data.shape} (detector shape: {self.compat_shape})")
         min_, max_ = norm.get_minmax(plot_data,self.alive_pixels)

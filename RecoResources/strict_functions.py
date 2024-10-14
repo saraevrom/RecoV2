@@ -26,5 +26,3 @@ class StrictFunction(object):
 
     def __call__(self, function):
         return StrictReturnFunction(self.return_type,function)
-
-
