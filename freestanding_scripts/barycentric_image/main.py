@@ -38,6 +38,9 @@ def fig_11(ax):
     print(np.min(frame), np.max(frame))
 
     ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
+    #ax.set_xlabel("X, mm", fontsize=15)
+    ax.set_title("X, mm", fontsize=15)
+    ax.set_ylabel("Y, mm", fontsize=15)
     ax.set_aspect("equal")
     minx, maxx, miny, maxy = detector.draw(ax, frame, norm=FixedNorm(3.0, np.max(frame)))
 
@@ -53,9 +56,8 @@ def fig_11(ax):
 
     ts,xs,ys = bayes_trajectory()
     ax.arrow(xs[0],ys[0],xs[1]-xs[0],ys[1]-ys[0],color="red",width=0.3,alpha=0.9,length_includes_head=True,zorder=2)
-
-
     _,xs_rad,ys_rad = bayes_trajectory(-1.5,t1=-500,t2=config.BAYES_K0)
+
     ax.plot(xs_rad,ys_rad,"-",color="green",zorder=1)
 
 
@@ -88,6 +90,7 @@ if __name__=="__main__":
         #Figure 1.1: trace
         fig,ax = plt.subplots(figsize=(8,4),dpi=250)
         fig_11(ax)
+        fig.tight_layout()
         save_fig(fig,"Fig1_trace")
 
         #Figure 1.2: X(t)
